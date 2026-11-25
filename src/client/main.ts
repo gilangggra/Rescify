@@ -618,6 +618,11 @@ function switchView(view: ViewName): void {
     }
   });
 
+  const topDispatchBtn = document.getElementById('btn-open-create-dispatch');
+  if (topDispatchBtn) {
+    topDispatchBtn.classList.toggle('hidden', view !== 'overview');
+  }
+
   closeMobileSidebar();
 }
 
