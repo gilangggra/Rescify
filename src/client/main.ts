@@ -162,6 +162,26 @@ function closeAllModals(): void {
   resolveConfirm(false);
 }
 
+function closeMobileSidebar(): void {
+  const sidebar = document.getElementById('app-sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!sidebar) return;
+  if (window.innerWidth < 768) {
+    sidebar.classList.add('hidden');
+    sidebar.classList.remove('flex', 'fixed', 'inset-y-0', 'left-0', 'z-50');
+    backdrop?.classList.add('hidden');
+  }
+}
+
+function openMobileSidebar(): void {
+  const sidebar = document.getElementById('app-sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!sidebar) return;
+  sidebar.classList.remove('hidden');
+  sidebar.classList.add('flex', 'fixed', 'inset-y-0', 'left-0', 'z-50', 'w-64');
+  backdrop?.classList.remove('hidden');
+}
+
 function switchView(view: ViewName): void {
   state.activeView = view;
 
@@ -178,32 +198,30 @@ function switchView(view: ViewName): void {
     btn.classList.toggle('text-red-600', false);
     btn.classList.toggle('text-zinc-600', !isActive);
     btn.classList.toggle('hover:text-zinc-950', !isActive);
-    btn.classList.toggle('hover:bg-zinc-200/70', !isActive);
+    btn.classList.toggle('hover:bg-zinc-100', !isActive);
     btn.classList.toggle('font-medium', !isActive);
     btn.setAttribute('aria-selected', String(isActive));
+
+    const icon = btn.querySelector('svg');
+    if (icon) {
+      icon.classList.toggle('text-white', isActive);
+      icon.classList.toggle('text-zinc-400', !isActive);
+      icon.classList.toggle('group-hover:text-zinc-700', !isActive);
+    }
 
     const countBadge = btn.querySelector('span[id^="nav-count-"]');
     if (countBadge) {
-      countBadge.classList.toggle('text-white/90', isActive);
-      countBadge.classList.toggle('text-zinc-400', !isActive);
+      countBadge.classList.toggle('bg-white/20', isActive);
+      countBadge.classList.toggle('text-white', isActive);
+      countBadge.classList.toggle('bg-zinc-100', !isActive);
+      countBadge.classList.toggle('text-zinc-500', !isActive);
     }
-  });
-
-  document.querySelectorAll('.nav-item-mobile').forEach((btn) => {
-    const isActive = (btn as HTMLElement).dataset.view === view;
-    btn.classList.toggle('bg-red-600', isActive);
-    btn.classList.toggle('text-white', isActive);
-    btn.classList.toggle('shadow-xs', isActive);
-    btn.classList.toggle('font-semibold', isActive);
-    btn.classList.toggle('bg-red-50', false);
-    btn.classList.toggle('text-red-600', false);
-    btn.classList.toggle('text-zinc-600', !isActive);
-    btn.classList.toggle('font-medium', !isActive);
-    btn.setAttribute('aria-selected', String(isActive));
   });
 
   const breadcrumb = document.getElementById('header-breadcrumb');
   if (breadcrumb) breadcrumb.textContent = VIEW_LABELS[view];
+
+  closeMobileSidebar();
 }
 
 function renderTelemetry(): void {
@@ -683,6 +701,11 @@ function openEditDispatchModal(dispatchId: string): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Mobile Sidebar Drawer
+  document.getElementById('btn-toggle-sidebar')?.addEventListener('click', openMobileSidebar);
+  document.getElementById('btn-close-mobile-sidebar')?.addEventListener('click', closeMobileSidebar);
+  document.getElementById('sidebar-backdrop')?.addEventListener('click', closeMobileSidebar);
+
   // Navigation
   document.querySelectorAll('[data-view]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
