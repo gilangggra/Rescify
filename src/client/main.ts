@@ -228,7 +228,6 @@ function renderTelemetry(): void {
   const available = Math.max(0, totalCap - totalOcc);
 
   const activeMissions = state.dispatches.filter((d) => d.status === 'Active').length;
-  const standbyUnits = state.teams.filter((t) => t.status === 'Standby').length;
 
   const setText = (id: string, value: string): void => {
     const el = document.getElementById(id);
@@ -239,10 +238,6 @@ function renderTelemetry(): void {
     'hero-summary-text',
     `Saat ini terdapat ${activeMissions} misi evakuasi aktif dan ${available} tempat tidur posko tersedia. Pantau kesiapan tim di lapangan.`
   );
-  setText('telemetry-occupancy', `${totalOcc} / ${totalCap}`);
-  setText('telemetry-available-beds', `${available} tempat`);
-  setText('telemetry-active-dispatches', `${activeMissions} berjalan`);
-  setText('telemetry-standby-teams', `${standbyUnits} / ${state.teams.length} tim`);
 
   setText('nav-count-shelters', String(state.shelters.length));
   setText('nav-count-teams', String(state.teams.length));
@@ -411,33 +406,6 @@ function renderOverview(): void {
               </div>
             </div>
             <span class="${badgeClass} shrink-0">${badgeText}</span>
-          </div>`;
-        })
-        .join('');
-    }
-  }
-
-  // Right Widget 3: Posko Siap Tampung (3 mini cards)
-  const rightShelters = document.getElementById('right-shelters-mini');
-  if (rightShelters) {
-    const openShelters = state.shelters.slice(0, 3);
-    if (openShelters.length === 0) {
-      rightShelters.innerHTML =
-        '<div class="col-span-3 py-4 text-center text-[11px] text-zinc-500">Belum ada posko.</div>';
-    } else {
-      rightShelters.innerHTML = openShelters
-        .map((s) => {
-          const remaining = Math.max(0, s.max_capacity - s.current_occupancy);
-          return `
-          <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-center flex flex-col justify-between gap-2">
-            <div>
-              <span class="inline-block px-1.5 py-0.5 rounded bg-white border border-zinc-200 tabular-nums text-[9px] font-bold text-zinc-600">${escapeHtml(s.shelter_id)}</span>
-              <p class="text-[11px] font-bold text-zinc-950 truncate mt-1.5" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</p>
-              <p class="text-[10px] text-zinc-500 tabular-nums">${remaining} kosong</p>
-            </div>
-            <button type="button" data-action="edit-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer w-full py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-[10px] font-semibold transition-colors">
-              Kelola
-            </button>
           </div>`;
         })
         .join('');
