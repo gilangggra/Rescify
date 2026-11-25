@@ -13,10 +13,24 @@ import { api } from './api/client';
 
 type ViewName = 'overview' | 'shelters' | 'teams' | 'dispatches';
 
+type NotificationSeverity = 'critical' | 'warning' | 'success' | 'info';
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  severity: NotificationSeverity;
+  timestamp: string;
+  read: boolean;
+  targetView?: ViewName;
+}
+
 interface AppState {
   shelters: Shelter[];
   teams: ResponseTeam[];
   dispatches: EnrichedDispatch[];
+  notifications: NotificationItem[];
+  notificationsSeeded: boolean;
   activeView: ViewName;
   globalSearch: string;
   sheltersStatus: string;
@@ -28,6 +42,8 @@ const state: AppState = {
   shelters: [],
   teams: [],
   dispatches: [],
+  notifications: [],
+  notificationsSeeded: false,
   activeView: 'overview',
   globalSearch: '',
   sheltersStatus: 'ALL',
@@ -94,12 +110,161 @@ function getErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
+function pushNotification(
+  title: string,
+  message: string,
+  severity: NotificationSeverity = 'info',
+  targetView?: ViewName
+): void {
+  state.notifications.unshift({
+    id: `ntf-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    title,
+    message,
+    severity,
+    timestamp: new Date().toISOString(),
+    read: false,
+    targetView,
+  });
+  if (state.notifications.length > 25) {
+    state.notifications.length = 25;
+  }
+  renderNotifications();
+}
+
+function syncSystemNotifications(): void {
+  if (state.notificationsSeeded) return;
+  state.notificationsSeeded = true;
+
+  const seeded: NotificationItem[] = [];
+  const now = new Date().toISOString();
+
+  for (const s of state.shelters) {
+    const pct = s.max_capacity > 0 ? Math.round((s.current_occupancy / s.max_capacity) * 100) : 0;
+    if (s.status === 'Full' || pct >= 100) {
+      seeded.push({
+        id: `seed-shl-${s.shelter_id}`,
+        title: `Posko Penuh: ${s.name}`,
+        message: `Kapasitas ${s.current_occupancy}/${s.max_capacity} terisi penuh (${s.shelter_id}).`,
+        severity: 'critical',
+        timestamp: now,
+        read: false,
+        targetView: 'shelters',
+      });
+    } else if (pct >= 80) {
+      seeded.push({
+        id: `seed-shl-${s.shelter_id}`,
+        title: `Kapasitas Hampir Penuh: ${s.name}`,
+        message: `Okupansi mencapai ${pct}% (${s.current_occupancy}/${s.max_capacity}).`,
+        severity: 'warning',
+        timestamp: now,
+        read: false,
+        targetView: 'shelters',
+      });
+    }
+  }
+
+  for (const d of state.dispatches) {
+    if (d.status === 'Active') {
+      seeded.push({
+        id: `seed-dsp-${d.dispatch_id}`,
+        title: `Misi Aktif (${URGENCY_LABELS[d.urgency]})`,
+        message: `${d.team_name} menuju ${d.incident_location} · ${d.evacuee_count} pengungsi.`,
+        severity: d.urgency === 'Critical' ? 'critical' : 'warning',
+        timestamp: d.created_at,
+        read: false,
+        targetView: 'dispatches',
+      });
+    }
+  }
+
+  if (seeded.length === 0) {
+    seeded.push({
+      id: 'seed-system-ok',
+      title: 'Sistem Komando Siaga',
+      message: 'Semua posko dan unit lapangan termonitor dalam kondisi normal.',
+      severity: 'info',
+      timestamp: now,
+      read: true,
+      targetView: 'overview',
+    });
+  }
+
+  state.notifications = seeded;
+}
+
+function renderNotifications(): void {
+  const unreadCount = state.notifications.filter((n) => !n.read).length;
+
+  document.querySelectorAll('[data-notif-dot]').forEach((dot) => {
+    dot.classList.toggle('hidden', unreadCount === 0);
+  });
+
+  const badge = document.getElementById('notifications-unread-badge');
+  if (badge) {
+    badge.textContent = String(unreadCount);
+    badge.classList.toggle('hidden', unreadCount === 0);
+  }
+
+  const list = document.getElementById('notifications-list');
+  if (!list) return;
+
+  if (state.notifications.length === 0) {
+    list.innerHTML =
+      '<div class="py-10 px-4 text-center text-xs text-zinc-500">Tidak ada notifikasi saat ini.</div>';
+    return;
+  }
+
+  list.innerHTML = state.notifications
+    .map((n) => {
+      const barColor =
+        n.severity === 'critical'
+          ? 'bg-red-600'
+          : n.severity === 'warning'
+          ? 'bg-amber-500'
+          : n.severity === 'success'
+          ? 'bg-emerald-600'
+          : 'bg-zinc-400';
+
+      return `
+      <button type="button" data-notif-id="${escapeHtml(n.id)}" class="w-full text-left px-4 py-3 hover:bg-zinc-50 transition-colors flex items-start gap-3 cursor-pointer ${
+        n.read ? 'opacity-70' : 'bg-white'
+      }">
+        <span class="w-2 h-2 rounded-full ${barColor} mt-1.5 shrink-0"></span>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs ${n.read ? 'font-medium text-zinc-700' : 'font-bold text-zinc-950'} truncate">${escapeHtml(n.title)}</p>
+            ${!n.read ? '<span class="w-1.5 h-1.5 rounded-full bg-red-600 shrink-0"></span>' : ''}
+          </div>
+          <p class="text-[11px] text-zinc-500 mt-0.5 leading-snug">${escapeHtml(n.message)}</p>
+          <p class="text-[10px] text-zinc-400 mt-1 tabular-nums">${escapeHtml(formatTimestamp(n.timestamp))}</p>
+        </div>
+      </button>`;
+    })
+    .join('');
+}
+
+function toggleNotificationsPanel(): void {
+  const panel = document.getElementById('notifications-panel');
+  if (!panel) return;
+  panel.classList.toggle('hidden');
+}
+
+function closeNotificationsPanel(): void {
+  document.getElementById('notifications-panel')?.classList.add('hidden');
+}
+
 function showToast(
   message: string,
   type: 'success' | 'error' | 'info' = 'info'
 ): void {
   const container = document.getElementById('toast-container');
   if (!container) return;
+
+  const severity: NotificationSeverity =
+    type === 'error' ? 'critical' : type === 'success' ? 'success' : 'info';
+  const title =
+    type === 'error' ? 'Peringatan Sistem' : type === 'success' ? 'Operasi Berhasil' : 'Informasi';
+  pushNotification(title, message, severity);
 
   const toast = document.createElement('div');
   const styleClass =
@@ -608,6 +773,7 @@ function renderAll(): void {
   renderTeamsView();
   renderDispatchesView();
   renderDispatchModalDropdowns();
+  renderNotifications();
 }
 
 async function refreshAllData(): Promise<void> {
@@ -620,6 +786,7 @@ async function refreshAllData(): Promise<void> {
     state.shelters = shelters;
     state.teams = teams;
     state.dispatches = dispatches;
+    syncSystemNotifications();
     renderAll();
   } catch (err) {
     showToast(getErrorMessage(err, 'Gagal memuat data SafeGrid.'), 'error');
@@ -718,10 +885,53 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('click', closeAllModals);
   });
 
+  // Notification Popover Controls
+  document.querySelectorAll('[data-toggle-notifications]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleNotificationsPanel();
+    });
+  });
+
+  document.getElementById('btn-mark-all-read')?.addEventListener('click', () => {
+    state.notifications.forEach((n) => {
+      n.read = true;
+    });
+    renderNotifications();
+  });
+
+  document.getElementById('btn-clear-notifications')?.addEventListener('click', () => {
+    state.notifications = [];
+    renderNotifications();
+  });
+
+  document.getElementById('notifications-list')?.addEventListener('click', (e) => {
+    const itemBtn = (e.target as HTMLElement).closest<HTMLElement>('[data-notif-id]');
+    if (!itemBtn) return;
+    const notif = state.notifications.find((n) => n.id === itemBtn.dataset.notifId);
+    if (!notif) return;
+    notif.read = true;
+    renderNotifications();
+    if (notif.targetView) {
+      switchView(notif.targetView);
+      closeNotificationsPanel();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notifications-panel');
+    if (!panel || panel.classList.contains('hidden')) return;
+    const target = e.target as HTMLElement;
+    if (!panel.contains(target) && !target.closest('[data-toggle-notifications]')) {
+      closeNotificationsPanel();
+    }
+  });
+
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeAllModals();
+      closeNotificationsPanel();
       return;
     }
     if (
