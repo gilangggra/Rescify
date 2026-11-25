@@ -29,7 +29,7 @@
   </script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dc2626' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z'/></svg>">
 </head>
-<body class="bg-[#f8f9fa] text-zinc-950 min-h-dvh flex font-sans antialiased">
+<body class="bg-[#f4f4f5] text-zinc-950 min-h-dvh flex font-sans antialiased">
 
   <!-- Skip Link -->
   <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-3 focus:py-2 focus:bg-red-600 focus:text-white focus:text-xs focus:font-semibold focus:rounded-lg shadow-md">
@@ -42,276 +42,204 @@
   <!-- Mobile Sidebar Backdrop -->
   <div id="sidebar-backdrop" class="fixed inset-0 bg-zinc-950/40 z-40 hidden md:hidden transition-opacity"></div>
 
-  <!-- Left Sidebar (Desktop & Mobile Drawer) -->
-  <aside id="app-sidebar" class="w-64 bg-white border-r border-zinc-200/80 shrink-0 hidden md:flex flex-col justify-between h-dvh sticky top-0 z-40 transition-all">
-    <!-- Top Area: Brand & Navigation -->
-    <div class="p-5 flex flex-col h-full overflow-y-auto">
+  <!-- COLUMN 1: LEFT SIDEBAR -->
+  <aside id="app-sidebar" class="w-56 lg:w-60 bg-white border-r border-zinc-200/80 shrink-0 hidden md:flex flex-col justify-between h-dvh sticky top-0 z-40">
+    <div class="py-6 flex flex-col h-full overflow-y-auto">
       <!-- Brand Logo -->
-      <div class="flex items-center justify-between pb-5 border-b border-zinc-100 mb-6">
-        <div class="flex items-center gap-3">
-          <svg class="w-8 h-8 shrink-0" viewBox="0 0 72 74" fill="none" aria-hidden="true">
+      <div class="px-6 flex items-center justify-between mb-8">
+        <div class="flex items-center gap-2.5">
+          <svg class="w-7 h-7 shrink-0" viewBox="0 0 72 74" fill="none" aria-hidden="true">
             <path d="M36 2L66 13.5V35.5C66 53.5 53.2 66.8 36 71C18.8 66.8 6 53.5 6 35.5V13.5L36 2Z" fill="#DC2626"/>
             <rect x="22" y="23" width="11" height="11" rx="2.5" fill="#FFFFFF"/>
             <rect x="39" y="23" width="11" height="11" rx="2.5" fill="#FECACA"/>
             <rect x="22" y="40" width="11" height="11" rx="2.5" fill="#FFFFFF" fill-opacity="0.9"/>
             <rect x="39" y="40" width="11" height="11" rx="2.5" fill="#FFFFFF" fill-opacity="0.9"/>
           </svg>
-          <div class="flex flex-col">
-            <span class="font-extrabold text-base tracking-tight text-zinc-950 leading-none">SafeGrid</span>
-            <span class="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest mt-0.5">Command Center</span>
-          </div>
+          <span class="font-extrabold text-lg tracking-tight text-zinc-950">SafeGrid</span>
         </div>
 
-        <!-- Mobile Close Button -->
         <button type="button" id="btn-close-mobile-sidebar" class="md:hidden text-zinc-400 hover:text-zinc-700 p-1 rounded-lg" aria-label="Tutup Menu">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <!-- Navigation Section -->
-      <div class="space-y-6 flex-1">
-        <div>
-          <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-3 mb-2.5">Menu Utama</p>
-          <nav class="space-y-1" role="tablist" aria-label="Navigasi Utama Sidebar">
-            <!-- Item 1: Overview -->
-            <button type="button" role="tab" aria-selected="true" data-view="overview" class="nav-item active w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-red-600 text-white shadow-xs transition-colors cursor-pointer group">
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
-                <span>Pusat Komando</span>
-              </div>
-            </button>
-
-            <!-- Item 2: Shelters -->
-            <button type="button" role="tab" aria-selected="false" data-view="shelters" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors cursor-pointer group">
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z"/></svg>
-                <span>Posko Pengungsian</span>
-              </div>
-              <span id="nav-count-shelters" class="tabular-nums text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-500">0</span>
-            </button>
-
-            <!-- Item 3: Teams -->
-            <button type="button" role="tab" aria-selected="false" data-view="teams" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors cursor-pointer group">
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span>Tim Lapangan</span>
-              </div>
-              <span id="nav-count-teams" class="tabular-nums text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-500">0</span>
-            </button>
-
-            <!-- Item 4: Dispatches -->
-            <button type="button" role="tab" aria-selected="false" data-view="dispatches" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors cursor-pointer group">
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span>Misi Evakuasi</span>
-              </div>
-              <span id="nav-count-dispatches" class="tabular-nums text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-500">0</span>
-            </button>
-          </nav>
-        </div>
-
-        <!-- System & Status Section -->
-        <div class="pt-5 border-t border-zinc-100">
-          <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-3 mb-2">Penyimpanan Data</p>
-          <div class="px-3.5 py-2.5 rounded-lg bg-zinc-50 border border-zinc-200/70 space-y-1">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-zinc-800">In-Memory JSON</span>
-              <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>Aktif</span>
-              </span>
-            </div>
-            <p class="text-[10px] text-zinc-500">CAK3EAB3 · Zero Eksternal DB</p>
+      <!-- Navigation List -->
+      <nav class="space-y-1 flex-1" role="tablist" aria-label="Navigasi Utama">
+        <button type="button" role="tab" aria-selected="true" data-view="overview" class="nav-item active w-full flex items-center justify-between px-6 py-3 text-xs font-bold text-red-600 bg-zinc-100 border-r-[3px] border-red-600 transition-colors cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+            <span>Pusat Komando</span>
           </div>
-        </div>
-      </div>
+        </button>
 
-      <!-- Bottom Profile Card -->
-      <div class="pt-4 border-t border-zinc-100">
-        <div class="flex items-center gap-3 px-2 py-1.5 rounded-lg">
-          <div class="w-8 h-8 rounded-lg bg-red-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs relative">
-            <span>KP</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500 absolute -bottom-0.5 -right-0.5 ring-2 ring-white"></span>
+        <button type="button" role="tab" aria-selected="false" data-view="shelters" class="nav-item w-full flex items-center justify-between px-6 py-3 text-xs font-medium text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50 transition-colors cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z"/></svg>
+            <span>Posko</span>
           </div>
-          <div class="flex flex-col min-w-0">
-            <span class="text-xs font-bold text-zinc-950 truncate">Komandan Satgas</span>
-            <span class="text-[10px] text-zinc-500 truncate">Pusat Komando · Siaga</span>
+          <span id="nav-count-shelters" class="tabular-nums text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-600">0</span>
+        </button>
+
+        <button type="button" role="tab" aria-selected="false" data-view="teams" class="nav-item w-full flex items-center justify-between px-6 py-3 text-xs font-medium text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50 transition-colors cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Tim Lapangan</span>
           </div>
+          <span id="nav-count-teams" class="tabular-nums text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-600">0</span>
+        </button>
+
+        <button type="button" role="tab" aria-selected="false" data-view="dispatches" class="nav-item w-full flex items-center justify-between px-6 py-3 text-xs font-medium text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50 transition-colors cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Misi Evakuasi</span>
+          </div>
+          <span id="nav-count-dispatches" class="tabular-nums text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-600">0</span>
+        </button>
+      </nav>
+
+      <!-- Bottom System Info -->
+      <div class="px-6 pt-4 border-t border-zinc-100 mt-auto">
+        <div class="flex items-center gap-2 text-xs text-zinc-500">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+          <span class="font-semibold text-zinc-700">In-Memory JSON</span>
         </div>
+        <p class="text-[10px] text-zinc-400 mt-1">CAK3EAB3 · SafeGrid v1.0</p>
       </div>
     </div>
   </aside>
 
-  <!-- Main Content Wrapper -->
+  <!-- COLUMN 2: CENTER MAIN WORKSPACE -->
   <div class="flex-1 flex flex-col min-w-0 min-h-dvh">
 
-    <!-- Top Header -->
-    <header class="bg-white border-b border-zinc-200/80 sticky top-0 z-30 shadow-xs h-16 flex items-center px-4 sm:px-8 justify-between gap-4">
-      <!-- Left: Mobile Menu Toggle & View Breadcrumb -->
-      <div class="flex items-center gap-3">
-        <button type="button" id="btn-toggle-sidebar" class="md:hidden cursor-pointer text-zinc-600 hover:text-zinc-950 p-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-100" aria-label="Buka Menu">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+    <!-- Center Top Bar (Search + Add New CTA like Hireism) -->
+    <header class="px-5 sm:px-7 pt-5 pb-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 flex-1 max-w-md">
+        <button type="button" id="btn-toggle-sidebar" class="md:hidden cursor-pointer text-zinc-600 hover:text-zinc-950 p-2 rounded-lg bg-white border border-zinc-200 shadow-xs" aria-label="Buka Menu">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
         </button>
-        <div>
-          <h1 id="header-breadcrumb" class="font-extrabold text-sm sm:text-base text-zinc-950 tracking-tight leading-tight">Pusat Komando</h1>
-          <p class="hidden sm:block text-[11px] text-zinc-500">Sistem Tanggap Darurat &amp; Evakuasi Terpadu</p>
-        </div>
-      </div>
 
-      <!-- Right: Search + Standardized CTA -->
-      <div class="flex items-center gap-3 shrink-0">
-        <div class="relative hidden sm:block">
-          <svg class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <div class="relative flex-1">
+          <input type="search" id="global-search" aria-label="Cari posko, tim, atau misi" placeholder="Cari sesuatu..." class="w-full h-10 pl-4 pr-10 bg-white border border-zinc-200/80 rounded-xl text-xs text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all shadow-xs">
+          <svg class="w-4 h-4 text-zinc-400 absolute right-3.5 top-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
-          <input type="search" id="global-search" aria-label="Cari posko, tim, atau misi" placeholder="Cari posko, tim, misi..." class="w-48 lg:w-64 h-9 pl-9 pr-8 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all shadow-xs">
-          <kbd class="absolute right-2.5 top-2 text-[10px] font-mono text-zinc-400 bg-zinc-100 border border-zinc-200 rounded px-1 pointer-events-none">/</kbd>
         </div>
-
-        <button id="btn-open-create-dispatch" type="button" class="btn-primary">
-          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-          </svg>
-          <span>Terbitkan Misi</span>
-        </button>
       </div>
+
+      <button id="btn-open-create-dispatch" type="button" class="btn-primary h-10 px-4 rounded-xl">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+        <span>Terbitkan Misi</span>
+      </button>
     </header>
 
-    <!-- Workspace Content -->
-    <main id="main-content" tabindex="-1" class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-7 space-y-7 focus:outline-none">
+    <!-- Center Workspace Content -->
+    <main id="main-content" tabindex="-1" class="flex-1 px-5 sm:px-7 py-3 space-y-6 focus:outline-none">
 
-      <!-- VIEW 1: OVERVIEW (PUSAT KOMANDO) -->
-      <section id="view-overview" class="view-panel space-y-7 animate-fade-in">
+      <!-- VIEW 1: OVERVIEW (PUSAT KOMANDO - HIREISM LAYOUT IN RED) -->
+      <section id="view-overview" class="view-panel space-y-6 animate-fade-in">
 
-        <!-- Page Section Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-xl font-bold text-zinc-950 tracking-tight">Ringkasan Operasional</h2>
-            <p class="text-xs text-zinc-500 mt-0.5">Monitoring kapasitas posko darurat, pergerakan misi, dan kesiapan personel lapangan.</p>
-          </div>
-          <div class="flex items-center gap-2.5 shrink-0">
-            <button type="button" data-open-shelter-modal class="btn-secondary">
-              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+        <!-- Hero Welcome Banner (Red Gradient like Hireism's Blue Banner) -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 via-red-600 to-red-700 text-white p-6 shadow-md">
+          <div class="relative z-10 flex items-center justify-between gap-4">
+            <div class="max-w-md space-y-2">
+              <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">Selamat Datang, Komandan</h1>
+              <p id="hero-summary-text" class="text-xs text-red-100 leading-relaxed">
+                Memuat ringkasan misi evakuasi aktif dan ketersediaan posko pengungsian.
+              </p>
+              <div class="pt-1">
+                <button type="button" data-jump-view="dispatches" class="cursor-pointer inline-flex items-center px-4 py-1.5 rounded-lg bg-white text-red-600 hover:bg-zinc-100 font-bold text-xs shadow-xs transition-colors">
+                  Tinjau Misi
+                </button>
+              </div>
+            </div>
+
+            <!-- Vector Shield/Command Illustration (right side of banner) -->
+            <div class="hidden sm:flex items-center justify-center shrink-0 pr-2">
+              <svg class="w-28 h-24 text-white/90" viewBox="0 0 120 100" fill="none" aria-hidden="true">
+                <circle cx="60" cy="50" r="44" fill="white" fill-opacity="0.12"/>
+                <circle cx="60" cy="50" r="32" fill="white" fill-opacity="0.16"/>
+                <path d="M60 16L88 26.5V47.5C88 64.5 76 77.5 60 82C44 77.5 32 64.5 32 47.5V26.5L60 16Z" fill="white"/>
+                <rect x="46" y="37" width="11" height="11" rx="2.5" fill="#DC2626"/>
+                <rect x="63" y="37" width="11" height="11" rx="2.5" fill="#DC2626" fill-opacity="0.45"/>
+                <rect x="46" y="54" width="11" height="11" rx="2.5" fill="#DC2626" fill-opacity="0.85"/>
+                <rect x="63" y="54" width="11" height="11" rx="2.5" fill="#DC2626"/>
               </svg>
-              <span>Tambah Posko</span>
-            </button>
-            <button type="button" data-open-dispatch-modal class="btn-primary">
-              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-              </svg>
-              <span>Terbitkan Misi</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- KPI Strip (Clean, Crisp High-Contrast Cards) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="card-elevated p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-semibold text-zinc-500">Okupansi Posko</p>
-              <span class="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center shadow-xs">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z"/></svg>
-              </span>
-            </div>
-            <div class="flex items-baseline justify-between mt-3">
-              <p id="telemetry-occupancy" class="tabular-nums text-2xl font-bold text-zinc-950">0 / 0</p>
-              <span id="telemetry-occupancy-pct" class="tabular-nums text-xs font-bold text-red-600">0%</span>
-            </div>
-            <div class="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden mt-3">
-              <div id="telemetry-occupancy-bar" class="progress-bar-fill h-full rounded-full bg-red-600" style="width: 0%"></div>
-            </div>
-          </div>
-
-          <div class="card-elevated p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-semibold text-zinc-500">Kapasitas Tersedia</p>
-              <span class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-              </span>
-            </div>
-            <div class="flex items-baseline justify-between mt-3">
-              <p id="telemetry-available-beds" class="tabular-nums text-2xl font-bold text-zinc-950">0</p>
-              <span class="text-xs text-zinc-500">tempat kosong</span>
-            </div>
-          </div>
-
-          <div class="card-elevated p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-semibold text-zinc-500">Misi Aktif</p>
-              <span class="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-xs">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              </span>
-            </div>
-            <div class="flex items-baseline justify-between mt-3">
-              <p id="telemetry-active-dispatches" class="tabular-nums text-2xl font-bold text-zinc-950">0</p>
-              <span class="text-xs text-zinc-500">sedang berjalan</span>
-            </div>
-          </div>
-
-          <div class="card-elevated p-5">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-semibold text-zinc-500">Unit Siaga</p>
-              <span class="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center shadow-xs">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              </span>
-            </div>
-            <div class="flex items-baseline justify-between mt-3">
-              <p id="telemetry-standby-teams" class="tabular-nums text-2xl font-bold text-zinc-950">0 / 0</p>
-              <span class="text-xs text-zinc-500">siap tugas</span>
             </div>
           </div>
         </div>
 
-        <!-- Posko Ringkas -->
-        <div class="space-y-4">
+        <!-- Section: Ringkasan Sumber Daya (Like "You Need to hire" in Hireism) -->
+        <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-zinc-950">Status Posko Pengungsian</h3>
-              <p class="text-xs text-zinc-500">Ketersediaan tempat tidur dan status operasional</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button type="button" data-jump-view="shelters" class="btn-primary">
-                <span>Lihat Semua</span>
-                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-              </button>
-            </div>
-          </div>
-          <div id="overview-shelters-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-        </div>
-
-        <!-- Split: Misi Terbaru & Tim Lapangan -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          <div class="lg:col-span-7 card-elevated overflow-hidden">
-            <div class="px-5 py-4 border-b border-zinc-200/80 flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-bold text-zinc-950">Misi Evakuasi Terbaru</h3>
-                <p class="text-[11px] text-zinc-500 mt-0.5">Pergerakan tim dan reservasi kapasitas posko</p>
-              </div>
-              <button type="button" data-jump-view="dispatches" class="btn-primary">
-                <span>Lihat Semua</span>
-                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-              </button>
-            </div>
-            <div id="overview-dispatches-list" class="divide-y divide-zinc-200/80"></div>
+            <h2 class="text-sm font-bold text-zinc-950">Ringkasan Operasional</h2>
+            <button type="button" data-jump-view="shelters" class="cursor-pointer px-3 py-1 rounded-lg text-[11px] font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors shadow-xs">
+              Lihat Semua
+            </button>
           </div>
 
-          <div class="lg:col-span-5 card-elevated overflow-hidden">
-            <div class="px-5 py-4 border-b border-zinc-200/80 flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-bold text-zinc-950">Kesiapan Tim Lapangan</h3>
-                <p class="text-[11px] text-zinc-500 mt-0.5">Unit SAR, Medis, &amp; Logistik</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div class="card-elevated p-4 text-center flex flex-col items-center">
+              <div class="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center mb-3 shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z"/></svg>
               </div>
-              <button type="button" data-open-team-modal class="btn-secondary">
-                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                </svg>
-                <span>Tambah Tim</span>
-              </button>
+              <p class="text-xs font-bold text-zinc-950">Okupansi Posko</p>
+              <p id="telemetry-occupancy" class="tabular-nums text-[11px] font-semibold text-zinc-500 mt-0.5">0 / 0</p>
             </div>
-            <div id="overview-teams-list" class="divide-y divide-zinc-200/80"></div>
+
+            <div class="card-elevated p-4 text-center flex flex-col items-center">
+              <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center mb-3 shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <p class="text-xs font-bold text-zinc-950">Kasur Tersedia</p>
+              <p id="telemetry-available-beds" class="tabular-nums text-[11px] font-semibold text-zinc-500 mt-0.5">0 tempat</p>
+            </div>
+
+            <div class="card-elevated p-4 text-center flex flex-col items-center">
+              <div class="w-11 h-11 rounded-xl bg-amber-600 text-white flex items-center justify-center mb-3 shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <p class="text-xs font-bold text-zinc-950">Misi Aktif</p>
+              <p id="telemetry-active-dispatches" class="tabular-nums text-[11px] font-semibold text-zinc-500 mt-0.5">0 berjalan</p>
+            </div>
+
+            <div class="card-elevated p-4 text-center flex flex-col items-center">
+              <div class="w-11 h-11 rounded-xl bg-zinc-900 text-white flex items-center justify-center mb-3 shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <p class="text-xs font-bold text-zinc-950">Unit Siaga</p>
+              <p id="telemetry-standby-teams" class="tabular-nums text-[11px] font-semibold text-zinc-500 mt-0.5">0 / 0 tim</p>
+            </div>
           </div>
         </div>
+
+        <!-- Section: Progres Misi Evakuasi (Like "Recruitment Progress" table in Hireism) -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-zinc-950">Progres Misi Evakuasi</h2>
+            <button type="button" data-jump-view="dispatches" class="cursor-pointer px-3 py-1 rounded-lg text-[11px] font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors shadow-xs">
+              Lihat Semua
+            </button>
+          </div>
+
+          <div class="card-elevated overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="border-b border-zinc-200/80 text-zinc-400 font-semibold">
+                  <tr>
+                    <th class="px-5 py-3">Lokasi Kejadian</th>
+                    <th class="px-5 py-3">Posko &amp; Tim</th>
+                    <th class="px-5 py-3">Status</th>
+                    <th class="px-5 py-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="overview-dispatches-table" class="divide-y divide-zinc-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </section>
 
       <!-- VIEW 2: POSKO PENGUNGSIAN -->
@@ -433,19 +361,64 @@
       </section>
 
     </main>
-
-    <!-- Footer -->
-    <footer class="border-t border-zinc-200/80 bg-white py-4 mt-auto">
-      <div class="max-w-6xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-2">
-        <div class="flex items-center gap-2">
-          <span class="font-bold text-zinc-950">SafeGrid</span>
-          <span>— Pusat Komando Darurat &amp; Posko Pengungsian</span>
-        </div>
-        <span>CAK3EAB3 · Penyimpanan JSON In-Memory</span>
-      </div>
-    </footer>
-
   </div>
+
+  <!-- COLUMN 3: RIGHT AUXILIARY PANEL (Like Hireism Right Panel) -->
+  <aside class="hidden xl:flex flex-col w-80 bg-white border-l border-zinc-200/80 shrink-0 h-dvh sticky top-0 p-5 gap-6 overflow-y-auto">
+    <!-- Top Profile Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <button type="button" data-open-shelter-modal title="Tambah Posko" class="cursor-pointer w-8 h-8 rounded-lg border border-zinc-200 hover:border-red-600 hover:text-red-600 text-zinc-500 flex items-center justify-center transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        </button>
+        <button type="button" data-jump-view="dispatches" title="Lihat Misi Aktif" class="cursor-pointer w-8 h-8 rounded-lg border border-zinc-200 hover:border-red-600 hover:text-red-600 text-zinc-500 flex items-center justify-center transition-colors relative">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+          <span class="w-2 h-2 rounded-full bg-red-600 absolute top-1.5 right-1.5"></span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2.5 text-right">
+        <div>
+          <p class="text-xs font-bold text-zinc-950 leading-none">Komandan Satgas</p>
+          <p class="text-[10px] text-zinc-400 font-medium mt-0.5">Sektor Pusat</p>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-red-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+          KP
+        </div>
+      </div>
+    </div>
+
+    <!-- Schedule Calendar Widget -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-zinc-950">Jadwal Operasi</h3>
+        <span id="right-calendar-month" class="px-2.5 py-0.5 rounded-md bg-zinc-100 text-[11px] font-semibold text-zinc-600">Nov</span>
+      </div>
+      <div id="right-calendar-strip" class="grid grid-cols-5 gap-1.5 text-center"></div>
+    </div>
+
+    <!-- Tim Lapangan Widget (Like "New Applicants") -->
+    <div class="space-y-3 flex-1">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-zinc-950">Tim Lapangan</h3>
+        <button type="button" data-jump-view="teams" class="cursor-pointer px-2 py-0.5 rounded text-[10px] font-semibold bg-zinc-100 hover:bg-red-600 hover:text-white text-zinc-600 transition-colors">
+          Lihat Semua
+        </button>
+      </div>
+      <div id="right-teams-list" class="space-y-2.5"></div>
+    </div>
+
+    <!-- Posko Siap Tampung Widget (Like "Ready For Training" 3 cards) -->
+    <div class="space-y-3 pt-2 border-t border-zinc-100">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-zinc-950">Posko Siap Tampung</h3>
+        <button type="button" data-jump-view="shelters" class="cursor-pointer px-2 py-0.5 rounded text-[10px] font-semibold bg-zinc-100 hover:bg-red-600 hover:text-white text-zinc-600 transition-colors">
+          Lihat Semua
+        </button>
+      </div>
+      <div id="right-shelters-mini" class="grid grid-cols-3 gap-2"></div>
+    </div>
+  </aside>
 
   <!-- MODAL TERBITKAN MISI -->
   <div id="modal-create-dispatch" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">

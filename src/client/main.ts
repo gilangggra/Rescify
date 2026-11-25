@@ -190,36 +190,34 @@ function switchView(view: ViewName): void {
 
   document.querySelectorAll('.nav-item').forEach((btn) => {
     const isActive = (btn as HTMLElement).dataset.view === view;
-    btn.classList.toggle('bg-red-600', isActive);
-    btn.classList.toggle('text-white', isActive);
-    btn.classList.toggle('shadow-xs', isActive);
-    btn.classList.toggle('font-semibold', isActive);
-    btn.classList.toggle('bg-red-50', false);
-    btn.classList.toggle('text-red-600', false);
-    btn.classList.toggle('text-zinc-600', !isActive);
+    btn.classList.toggle('bg-zinc-100', isActive);
+    btn.classList.toggle('text-red-600', isActive);
+    btn.classList.toggle('border-r-[3px]', isActive);
+    btn.classList.toggle('border-red-600', isActive);
+    btn.classList.toggle('font-bold', isActive);
+    btn.classList.toggle('bg-red-600', false);
+    btn.classList.toggle('text-white', false);
+    btn.classList.toggle('text-zinc-500', !isActive);
     btn.classList.toggle('hover:text-zinc-950', !isActive);
-    btn.classList.toggle('hover:bg-zinc-100', !isActive);
+    btn.classList.toggle('hover:bg-zinc-50', !isActive);
     btn.classList.toggle('font-medium', !isActive);
     btn.setAttribute('aria-selected', String(isActive));
 
     const icon = btn.querySelector('svg');
     if (icon) {
-      icon.classList.toggle('text-white', isActive);
+      icon.classList.toggle('text-red-600', isActive);
       icon.classList.toggle('text-zinc-400', !isActive);
       icon.classList.toggle('group-hover:text-zinc-700', !isActive);
     }
 
     const countBadge = btn.querySelector('span[id^="nav-count-"]');
     if (countBadge) {
-      countBadge.classList.toggle('bg-white/20', isActive);
+      countBadge.classList.toggle('bg-red-600', isActive);
       countBadge.classList.toggle('text-white', isActive);
       countBadge.classList.toggle('bg-zinc-100', !isActive);
-      countBadge.classList.toggle('text-zinc-500', !isActive);
+      countBadge.classList.toggle('text-zinc-600', !isActive);
     }
   });
-
-  const breadcrumb = document.getElementById('header-breadcrumb');
-  if (breadcrumb) breadcrumb.textContent = VIEW_LABELS[view];
 
   closeMobileSidebar();
 }
@@ -228,7 +226,6 @@ function renderTelemetry(): void {
   const totalOcc = state.shelters.reduce((sum, s) => sum + s.current_occupancy, 0);
   const totalCap = state.shelters.reduce((sum, s) => sum + s.max_capacity, 0);
   const available = Math.max(0, totalCap - totalOcc);
-  const pct = totalCap > 0 ? ((totalOcc / totalCap) * 100).toFixed(1) : '0.0';
 
   const activeMissions = state.dispatches.filter((d) => d.status === 'Active').length;
   const standbyUnits = state.teams.filter((t) => t.status === 'Standby').length;
@@ -238,20 +235,14 @@ function renderTelemetry(): void {
     if (el) el.textContent = value;
   };
 
+  setText(
+    'hero-summary-text',
+    `Saat ini terdapat ${activeMissions} misi evakuasi aktif dan ${available} tempat tidur posko tersedia. Pantau kesiapan tim di lapangan.`
+  );
   setText('telemetry-occupancy', `${totalOcc} / ${totalCap}`);
-  setText('telemetry-occupancy-pct', `${pct}%`);
-  setText('telemetry-available-beds', String(available));
-  setText('telemetry-active-dispatches', String(activeMissions));
-  setText('telemetry-standby-teams', `${standbyUnits} / ${state.teams.length}`);
-
-  const occBar = document.getElementById('telemetry-occupancy-bar');
-  if (occBar) {
-    const numPct = totalCap > 0 ? Math.min(100, Math.round((totalOcc / totalCap) * 100)) : 0;
-    occBar.style.width = `${numPct}%`;
-    occBar.className = `progress-bar-fill h-full rounded-full ${
-      numPct >= 90 ? 'bg-red-700' : numPct >= 75 ? 'bg-amber-600' : 'bg-red-600'
-    }`;
-  }
+  setText('telemetry-available-beds', `${available} tempat`);
+  setText('telemetry-active-dispatches', `${activeMissions} berjalan`);
+  setText('telemetry-standby-teams', `${standbyUnits} / ${state.teams.length} tim`);
 
   setText('nav-count-shelters', String(state.shelters.length));
   setText('nav-count-teams', String(state.teams.length));
@@ -311,23 +302,9 @@ function renderShelterCard(s: Shelter): string {
 function renderOverview(): void {
   const q = state.globalSearch.toLowerCase();
 
-  // Shelters preview
-  const overviewShelters = document.getElementById('overview-shelters-grid');
-  if (overviewShelters) {
-    const matched = state.shelters.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.location.toLowerCase().includes(q) ||
-        s.shelter_id.toLowerCase().includes(q)
-    );
-    overviewShelters.innerHTML = matched.length
-      ? matched.slice(0, 3).map(renderShelterCard).join('')
-      : '<div class="col-span-3 text-center py-8 card-elevated text-xs font-medium text-zinc-500">Tidak ada posko ditemukan.</div>';
-  }
-
-  // Dispatches preview
-  const overviewDispatches = document.getElementById('overview-dispatches-list');
-  if (overviewDispatches) {
+  // Center table: Progres Misi Evakuasi
+  const overviewTable = document.getElementById('overview-dispatches-table');
+  if (overviewTable) {
     const matched = state.dispatches.filter(
       (d) =>
         d.incident_location.toLowerCase().includes(q) ||
@@ -335,74 +312,89 @@ function renderOverview(): void {
         d.team_name.toLowerCase().includes(q)
     );
     if (matched.length === 0) {
-      overviewDispatches.innerHTML =
-        '<div class="py-10 text-center text-xs text-zinc-500">Belum ada misi evakuasi.</div>';
+      overviewTable.innerHTML =
+        '<tr><td colspan="4" class="py-10 text-center text-xs text-zinc-500">Belum ada misi evakuasi.</td></tr>';
     } else {
-      overviewDispatches.innerHTML = matched
-        .slice(0, 5)
+      overviewTable.innerHTML = matched
+        .slice(0, 6)
         .map((d) => {
           const isCompleted = d.status === 'Completed';
           const badgeClass = isCompleted ? 'status-badge-completed' : 'status-badge-active';
           const badgeText = isCompleted ? 'Selesai' : 'Aktif';
-          const urgencyClass =
-            d.urgency === 'Critical'
-              ? 'text-red-600 font-bold'
-              : d.urgency === 'High'
-              ? 'text-orange-600 font-semibold'
-              : 'text-zinc-600 font-medium';
 
           return `
-          <div class="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-zinc-50 transition-colors">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 text-xs mb-1">
-                <span class="font-mono text-zinc-500 font-semibold">${escapeHtml(d.dispatch_id)}</span>
-                <span class="${urgencyClass}">${escapeHtml(URGENCY_LABELS[d.urgency])}</span>
-                <span class="text-zinc-300">·</span>
-                <span class="${badgeClass}">${badgeText}</span>
-              </div>
-              <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(d.incident_location)}</p>
-              <div class="flex items-center gap-2 text-xs text-zinc-500 truncate mt-1">
-                <span class="truncate">${escapeHtml(d.shelter_name)}</span>
-                <span class="text-zinc-300">·</span>
-                <span class="font-semibold text-zinc-700">${d.evacuee_count} pengungsi</span>
-                <span class="text-zinc-300">·</span>
-                <span class="truncate">${escapeHtml(d.team_name)}</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
+          <tr class="hover:bg-zinc-50 transition-colors">
+            <td class="px-5 py-3.5">
+              <div class="font-bold text-zinc-950">${escapeHtml(d.incident_location)}</div>
+              <div class="text-[11px] text-zinc-500 font-mono mt-0.5">${escapeHtml(d.dispatch_id)} · ${escapeHtml(URGENCY_LABELS[d.urgency])}</div>
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="font-semibold text-zinc-800">${escapeHtml(d.shelter_name)}</div>
+              <div class="text-[11px] text-zinc-500 mt-0.5">${escapeHtml(d.team_name)} (${d.evacuee_count} jiwa)</div>
+            </td>
+            <td class="px-5 py-3.5">
+              <span class="${badgeClass}">${badgeText}</span>
+            </td>
+            <td class="px-5 py-3.5 text-right whitespace-nowrap">
               ${
                 !isCompleted
-                  ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
-                      <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                      <span>Selesai</span>
-                    </button>`
-                  : ''
+                  ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white text-[11px] font-semibold rounded-md shadow-xs transition-colors">Selesai</button>`
+                  : `<button type="button" data-action="edit-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer px-2.5 py-1 bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-700 text-[11px] font-semibold rounded-md transition-colors">Detail</button>`
               }
-            </div>
-          </div>`;
+            </td>
+          </tr>`;
         })
         .join('');
     }
   }
 
-  // Teams preview
-  const overviewTeams = document.getElementById('overview-teams-list');
-  if (overviewTeams) {
+  // Right Widget 1: Schedule Calendar Strip
+  const calMonthEl = document.getElementById('right-calendar-month');
+  const calStripEl = document.getElementById('right-calendar-strip');
+  if (calMonthEl && calStripEl) {
+    const today = new Date();
+    const monthName = today.toLocaleDateString('id-ID', { month: 'short' });
+    calMonthEl.textContent = monthName;
+
+    const daysHtml: string[] = [];
+    for (let offset = -2; offset <= 2; offset++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + offset);
+      const dayLabel = d.toLocaleDateString('id-ID', { weekday: 'short' });
+      const dateNum = d.getDate();
+      const isToday = offset === 0;
+
+      daysHtml.push(`
+        <div class="py-2.5 px-1 rounded-xl flex flex-col items-center justify-center ${
+          isToday ? 'bg-red-600 text-white shadow-sm' : 'bg-zinc-50 text-zinc-600'
+        }">
+          <span class="text-[10px] font-medium ${isToday ? 'text-red-100' : 'text-zinc-400'}">${escapeHtml(dayLabel)}</span>
+          <span class="text-xs font-bold mt-1 tabular-nums">${dateNum}</span>
+        </div>
+      `);
+    }
+    calStripEl.innerHTML = daysHtml.join('');
+  }
+
+  // Right Widget 2: Tim Lapangan List
+  const rightTeams = document.getElementById('right-teams-list');
+  if (rightTeams) {
     const matched = state.teams.filter(
       (t) =>
         t.name.toLowerCase().includes(q) ||
         t.specialty.toLowerCase().includes(q)
     );
     if (matched.length === 0) {
-      overviewTeams.innerHTML =
-        '<div class="py-10 text-center text-xs text-zinc-500">Belum ada tim terdaftar.</div>';
+      rightTeams.innerHTML =
+        '<div class="py-6 text-center text-xs text-zinc-500">Belum ada tim terdaftar.</div>';
     } else {
-      overviewTeams.innerHTML = matched
+      rightTeams.innerHTML = matched
+        .slice(0, 5)
         .map((t) => {
           const isStandby = t.status === 'Standby';
           const badgeClass = isStandby ? 'status-badge-standby' : 'status-badge-deployed';
           const badgeText = isStandby ? 'Siaga' : 'Bertugas';
-          const iconBg =
+          const avatarBg =
             t.specialty === 'SAR'
               ? 'bg-red-600 text-white'
               : t.specialty === 'Medical'
@@ -410,19 +402,44 @@ function renderOverview(): void {
               : 'bg-amber-600 text-white';
 
           return `
-          <div class="px-5 py-3 flex items-center justify-between gap-3 hover:bg-zinc-50 transition-colors">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-lg ${iconBg} flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+          <div class="flex items-center justify-between gap-2.5 py-1.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">
                 ${t.specialty === 'SAR' ? 'SAR' : t.specialty === 'Medical' ? 'MED' : 'LOG'}
               </div>
               <div class="min-w-0">
                 <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(t.name)}</p>
-                <p class="text-[11px] text-zinc-500 tabular-nums mt-0.5">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
+                <p class="text-[10px] text-zinc-500 truncate">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
               </div>
             </div>
-            <span class="${badgeClass}">
-              ${badgeText}
-            </span>
+            <span class="${badgeClass} shrink-0">${badgeText}</span>
+          </div>`;
+        })
+        .join('');
+    }
+  }
+
+  // Right Widget 3: Posko Siap Tampung (3 mini cards)
+  const rightShelters = document.getElementById('right-shelters-mini');
+  if (rightShelters) {
+    const openShelters = state.shelters.slice(0, 3);
+    if (openShelters.length === 0) {
+      rightShelters.innerHTML =
+        '<div class="col-span-3 py-4 text-center text-[11px] text-zinc-500">Belum ada posko.</div>';
+    } else {
+      rightShelters.innerHTML = openShelters
+        .map((s) => {
+          const remaining = Math.max(0, s.max_capacity - s.current_occupancy);
+          return `
+          <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-center flex flex-col justify-between gap-2">
+            <div>
+              <span class="inline-block px-1.5 py-0.5 rounded bg-white border border-zinc-200 font-mono text-[9px] font-bold text-zinc-600">${escapeHtml(s.shelter_id)}</span>
+              <p class="text-[11px] font-bold text-zinc-950 truncate mt-1.5" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</p>
+              <p class="text-[10px] text-zinc-500 tabular-nums">${remaining} kosong</p>
+            </div>
+            <button type="button" data-action="edit-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer w-full py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-[10px] font-semibold transition-colors">
+              Kelola
+            </button>
           </div>`;
         })
         .join('');
