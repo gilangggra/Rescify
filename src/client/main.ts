@@ -579,22 +579,14 @@ function renderShelterCard(s: Shelter): string {
 }
 
 function renderOverview(): void {
-  const q = state.globalSearch.toLowerCase();
-
   // Center table: Progres Misi Evakuasi
   const overviewTable = document.getElementById('overview-dispatches-table');
   if (overviewTable) {
-    const matched = state.dispatches.filter(
-      (d) =>
-        d.incident_location.toLowerCase().includes(q) ||
-        d.shelter_name.toLowerCase().includes(q) ||
-        d.team_name.toLowerCase().includes(q)
-    );
-    if (matched.length === 0) {
+    if (state.dispatches.length === 0) {
       overviewTable.innerHTML =
         '<tr><td colspan="4" class="py-10 text-center text-xs text-zinc-500">Belum ada misi evakuasi.</td></tr>';
     } else {
-      overviewTable.innerHTML = matched
+      overviewTable.innerHTML = state.dispatches
         .slice(0, 6)
         .map((d) => {
           const isCompleted = d.status === 'Completed';
@@ -658,16 +650,11 @@ function renderOverview(): void {
   // Right Widget 2: Tim Lapangan List
   const rightTeams = document.getElementById('right-teams-list');
   if (rightTeams) {
-    const matched = state.teams.filter(
-      (t) =>
-        t.name.toLowerCase().includes(q) ||
-        t.specialty.toLowerCase().includes(q)
-    );
-    if (matched.length === 0) {
+    if (state.teams.length === 0) {
       rightTeams.innerHTML =
         '<div class="py-6 text-center text-xs text-zinc-500">Belum ada tim terdaftar.</div>';
     } else {
-      rightTeams.innerHTML = matched
+      rightTeams.innerHTML = state.teams
         .slice(0, 5)
         .map((t) => {
           const isStandby = t.status === 'Standby';
@@ -702,15 +689,9 @@ function renderSheltersView(): void {
   const empty = document.getElementById('shelters-empty-state');
   if (!grid || !empty) return;
 
-  const q = state.globalSearch.toLowerCase();
-  const filtered = state.shelters.filter((s) => {
-    const matchSearch =
-      s.name.toLowerCase().includes(q) ||
-      s.location.toLowerCase().includes(q) ||
-      s.shelter_id.toLowerCase().includes(q);
-    const matchStatus = state.sheltersStatus === 'ALL' || s.status === state.sheltersStatus;
-    return matchSearch && matchStatus;
-  });
+  const filtered = state.shelters.filter(
+    (s) => state.sheltersStatus === 'ALL' || s.status === state.sheltersStatus
+  );
 
   if (filtered.length === 0) {
     grid.innerHTML = '';
@@ -727,15 +708,9 @@ function renderTeamsView(): void {
   const empty = document.getElementById('teams-empty-state');
   if (!tbody || !empty) return;
 
-  const q = state.globalSearch.toLowerCase();
-  const filtered = state.teams.filter((t) => {
-    const matchSearch =
-      t.name.toLowerCase().includes(q) ||
-      t.specialty.toLowerCase().includes(q) ||
-      t.team_id.toLowerCase().includes(q);
-    const matchStatus = state.teamsStatus === 'ALL' || t.status === state.teamsStatus;
-    return matchSearch && matchStatus;
-  });
+  const filtered = state.teams.filter(
+    (t) => state.teamsStatus === 'ALL' || t.status === state.teamsStatus
+  );
 
   if (filtered.length === 0) {
     tbody.innerHTML = '';
@@ -786,16 +761,9 @@ function renderDispatchesView(): void {
   const empty = document.getElementById('dispatches-empty-state');
   if (!tbody || !empty) return;
 
-  const q = state.globalSearch.toLowerCase();
-  const filtered = state.dispatches.filter((d) => {
-    const matchSearch =
-      d.incident_location.toLowerCase().includes(q) ||
-      d.shelter_name.toLowerCase().includes(q) ||
-      d.team_name.toLowerCase().includes(q) ||
-      d.dispatch_id.toLowerCase().includes(q);
-    const matchStatus = state.dispatchesStatus === 'ALL' || d.status === state.dispatchesStatus;
-    return matchSearch && matchStatus;
-  });
+  const filtered = state.dispatches.filter(
+    (d) => state.dispatchesStatus === 'ALL' || d.status === state.dispatchesStatus
+  );
 
   if (filtered.length === 0) {
     tbody.innerHTML = '';
@@ -1266,10 +1234,6 @@ document.addEventListener('DOMContentLoaded', () => {
   searchInput?.addEventListener('input', (e) => {
     state.globalSearch = (e.currentTarget as HTMLInputElement).value;
     renderSearchDropdown();
-    renderOverview();
-    renderSheltersView();
-    renderTeamsView();
-    renderDispatchesView();
   });
   searchInput?.addEventListener('focus', () => {
     if (state.globalSearch.trim()) {
