@@ -40,7 +40,7 @@ export interface EnrichedDispatch extends EmergencyDispatch {
   team_specialty: TeamSpecialty | 'Unknown';
 }
 
-export interface SafeGridStore {
+export interface RescifyStore {
   shelters: Shelter[];
   response_teams: ResponseTeam[];
   emergency_dispatches: EmergencyDispatch[];

@@ -194,4 +194,20 @@ describe('Rescify REST API & Capacity/Resource Invariants', () => {
     const shl1AfterComplete = await requestJson<Shelter>('GET', '/api/shelters/SHL-01');
     assert.equal(shl1AfterComplete.json.data.current_occupancy, 45);
   });
+
+  it('Frontend UI & Static Assets: serves built Rescify UI without Tailwind CDN and serves avatar assets', async () => {
+    const htmlRes = await fetch(`${baseUrl}/`);
+    assert.equal(htmlRes.status, 200);
+    const html = await htmlRes.text();
+    assert.ok(html.includes('Rescify'));
+    assert.ok(!html.includes('cdn.tailwindcss.com'));
+    assert.ok(html.includes('id="search-results-dropdown"'));
+    assert.ok(html.includes('id="notifications-panel"'));
+    assert.ok(html.includes('data-modal-error'));
+
+    const avatarRes = await fetch(`${baseUrl}/avatar-commander.svg`);
+    assert.equal(avatarRes.status, 200);
+    const svg = await avatarRes.text();
+    assert.ok(svg.includes('<svg'));
+  });
 });

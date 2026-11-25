@@ -1,11 +1,11 @@
 import {
   EmergencyDispatch,
   ResponseTeam,
-  SafeGridStore,
+  RescifyStore,
   Shelter,
 } from '../../shared/types';
 
-const INITIAL_SEED_DATA: SafeGridStore = {
+const INITIAL_SEED_DATA: RescifyStore = {
   shelters: [
     {
       shelter_id: 'SHL-01',
@@ -70,7 +70,7 @@ const INITIAL_SEED_DATA: SafeGridStore = {
   ],
 };
 
-function cloneSeedData(): SafeGridStore {
+function cloneSeedData(): RescifyStore {
   return {
     shelters: INITIAL_SEED_DATA.shelters.map((s) => ({ ...s })),
     response_teams: INITIAL_SEED_DATA.response_teams.map((t) => ({ ...t })),
@@ -78,9 +78,9 @@ function cloneSeedData(): SafeGridStore {
   };
 }
 
-export const store: SafeGridStore = cloneSeedData();
+export const store: RescifyStore = cloneSeedData();
 
-export function resetStore(): SafeGridStore {
+export function resetStore(): RescifyStore {
   const fresh = cloneSeedData();
   store.shelters.splice(0, store.shelters.length, ...fresh.shelters);
   store.response_teams.splice(0, store.response_teams.length, ...fresh.response_teams);
@@ -92,7 +92,7 @@ export function resetStore(): SafeGridStore {
   return getStoreSnapshot();
 }
 
-export function getStoreSnapshot(): SafeGridStore {
+export function getStoreSnapshot(): RescifyStore {
   return {
     shelters: store.shelters.map((s) => ({ ...s })),
     response_teams: store.response_teams.map((t) => ({ ...t })),

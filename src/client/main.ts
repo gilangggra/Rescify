@@ -25,14 +25,18 @@ interface NotificationItem {
   targetView?: ViewName;
 }
 
+const NOTIF_STORAGE_KEY = 'rescify_notifications_v1';
+
 interface AppState {
   shelters: Shelter[];
   teams: ResponseTeam[];
   dispatches: EnrichedDispatch[];
   notifications: NotificationItem[];
-  notificationsSeeded: boolean;
+  notificationsLoaded: boolean;
   activeView: ViewName;
   globalSearch: string;
+  searchActiveIndex: number;
+  selectedDate: string | null;
   sheltersStatus: string;
   teamsStatus: string;
   dispatchesStatus: string;
@@ -43,9 +47,11 @@ const state: AppState = {
   teams: [],
   dispatches: [],
   notifications: [],
-  notificationsSeeded: false,
+  notificationsLoaded: false,
   activeView: 'overview',
   globalSearch: '',
+  searchActiveIndex: -1,
+  selectedDate: null,
   sheltersStatus: 'ALL',
   teamsStatus: 'ALL',
   dispatchesStatus: 'ALL',
@@ -131,55 +137,87 @@ function pushNotification(
   renderNotifications();
 }
 
-function syncSystemNotifications(): void {
-  if (state.notificationsSeeded) return;
-  state.notificationsSeeded = true;
+function saveNotifications(): void {
+  try {
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(state.notifications));
+  } catch {
+    // ignore storage quota errors
+  }
+}
 
-  const seeded: NotificationItem[] = [];
+function loadSavedNotifications(): void {
+  if (state.notificationsLoaded) return;
+  state.notificationsLoaded = true;
+  try {
+    const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        state.notifications = parsed;
+      }
+    }
+  } catch {
+    // ignore malformed storage
+  }
+}
+
+function syncSystemNotifications(): void {
+  loadSavedNotifications();
+
+  const existingIds = new Set(state.notifications.map((n) => n.id));
   const now = new Date().toISOString();
 
   for (const s of state.shelters) {
     const pct = s.max_capacity > 0 ? Math.round((s.current_occupancy / s.max_capacity) * 100) : 0;
     if (s.status === 'Full' || pct >= 100) {
-      seeded.push({
-        id: `seed-shl-${s.shelter_id}`,
-        title: `Posko Penuh: ${s.name}`,
-        message: `Kapasitas ${s.current_occupancy}/${s.max_capacity} terisi penuh (${s.shelter_id}).`,
-        severity: 'critical',
-        timestamp: now,
-        read: false,
-        targetView: 'shelters',
-      });
+      const id = `sys-shl-full-${s.shelter_id}`;
+      if (!existingIds.has(id)) {
+        state.notifications.unshift({
+          id,
+          title: `Posko Penuh: ${s.name}`,
+          message: `Kapasitas ${s.current_occupancy}/${s.max_capacity} terisi penuh (${s.shelter_id}).`,
+          severity: 'critical',
+          timestamp: now,
+          read: false,
+          targetView: 'shelters',
+        });
+      }
     } else if (pct >= 80) {
-      seeded.push({
-        id: `seed-shl-${s.shelter_id}`,
-        title: `Kapasitas Hampir Penuh: ${s.name}`,
-        message: `Okupansi mencapai ${pct}% (${s.current_occupancy}/${s.max_capacity}).`,
-        severity: 'warning',
-        timestamp: now,
-        read: false,
-        targetView: 'shelters',
-      });
+      const id = `sys-shl-warn-${s.shelter_id}`;
+      if (!existingIds.has(id)) {
+        state.notifications.unshift({
+          id,
+          title: `Kapasitas Hampir Penuh: ${s.name}`,
+          message: `Okupansi mencapai ${pct}% (${s.current_occupancy}/${s.max_capacity}).`,
+          severity: 'warning',
+          timestamp: now,
+          read: false,
+          targetView: 'shelters',
+        });
+      }
     }
   }
 
   for (const d of state.dispatches) {
     if (d.status === 'Active') {
-      seeded.push({
-        id: `seed-dsp-${d.dispatch_id}`,
-        title: `Misi Aktif (${URGENCY_LABELS[d.urgency]})`,
-        message: `${d.team_name} menuju ${d.incident_location} · ${d.evacuee_count} pengungsi.`,
-        severity: d.urgency === 'Critical' ? 'critical' : 'warning',
-        timestamp: d.created_at,
-        read: false,
-        targetView: 'dispatches',
-      });
+      const id = `sys-dsp-active-${d.dispatch_id}`;
+      if (!existingIds.has(id)) {
+        state.notifications.unshift({
+          id,
+          title: `Misi Aktif (${URGENCY_LABELS[d.urgency]})`,
+          message: `${d.team_name} menuju ${d.incident_location} · ${d.evacuee_count} pengungsi.`,
+          severity: d.urgency === 'Critical' ? 'critical' : 'warning',
+          timestamp: d.created_at,
+          read: false,
+          targetView: 'dispatches',
+        });
+      }
     }
   }
 
-  if (seeded.length === 0) {
-    seeded.push({
-      id: 'seed-system-ok',
+  if (state.notifications.length === 0) {
+    state.notifications.push({
+      id: 'sys-ok',
       title: 'Sistem Komando Siaga',
       message: 'Semua posko dan unit lapangan termonitor dalam kondisi normal.',
       severity: 'info',
@@ -189,10 +227,14 @@ function syncSystemNotifications(): void {
     });
   }
 
-  state.notifications = seeded;
+  if (state.notifications.length > 25) {
+    state.notifications.length = 25;
+  }
+  saveNotifications();
 }
 
 function renderNotifications(): void {
+  saveNotifications();
   const unreadCount = state.notifications.filter((n) => !n.read).length;
 
   document.querySelectorAll('[data-notif-dot]').forEach((dot) => {
@@ -245,12 +287,39 @@ function renderNotifications(): void {
 
 function closeSearchDropdown(): void {
   document.getElementById('search-results-dropdown')?.classList.add('hidden');
+  state.searchActiveIndex = -1;
+}
+
+function updateSearchActiveItem(): void {
+  const items = document.querySelectorAll<HTMLElement>('#search-results-dropdown [data-search-view]');
+  items.forEach((el, idx) => {
+    const active = idx === state.searchActiveIndex;
+    el.classList.toggle('bg-zinc-100', active);
+    if (active) el.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function selectSearchResult(view: ViewName, entityId?: string): void {
+  switchView(view);
+  closeSearchDropdown();
+  if (!entityId) return;
+
+  requestAnimationFrame(() => {
+    const target = document.querySelector<HTMLElement>(`[data-entity-id="${entityId}"]`);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('ring-2', 'ring-red-600', 'bg-red-50/30');
+    setTimeout(() => {
+      target.classList.remove('ring-2', 'ring-red-600', 'bg-red-50/30');
+    }, 2200);
+  });
 }
 
 function renderSearchDropdown(): void {
   const dropdown = document.getElementById('search-results-dropdown');
   if (!dropdown) return;
 
+  state.searchActiveIndex = -1;
   const q = state.globalSearch.trim().toLowerCase();
   if (!q) {
     dropdown.classList.add('hidden');
@@ -291,7 +360,7 @@ function renderSearchDropdown(): void {
             .map((s) => {
               const meta = SHELTER_STATUS_META[s.status];
               return `
-              <button type="button" data-search-view="shelters" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+              <button type="button" data-search-view="shelters" data-search-id="${escapeHtml(s.shelter_id)}" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
                 <div class="min-w-0">
                   <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(s.name)}</p>
                   <p class="text-[11px] text-zinc-500 truncate">${escapeHtml(s.location)} · ${s.current_occupancy}/${s.max_capacity}</p>
@@ -315,7 +384,7 @@ function renderSearchDropdown(): void {
             .map((t) => {
               const isStandby = t.status === 'Standby';
               return `
-              <button type="button" data-search-view="teams" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+              <button type="button" data-search-view="teams" data-search-id="${escapeHtml(t.team_id)}" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
                 <div class="min-w-0">
                   <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(t.name)}</p>
                   <p class="text-[11px] text-zinc-500 truncate">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
@@ -339,7 +408,7 @@ function renderSearchDropdown(): void {
             .map((d) => {
               const isCompleted = d.status === 'Completed';
               return `
-              <button type="button" data-search-view="dispatches" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+              <button type="button" data-search-view="dispatches" data-search-id="${escapeHtml(d.dispatch_id)}" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
                 <div class="min-w-0">
                   <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(d.incident_location)}</p>
                   <p class="text-[11px] text-zinc-500 truncate">${escapeHtml(d.shelter_name)} · ${escapeHtml(d.team_name)}</p>
@@ -436,6 +505,51 @@ function resolveConfirm(result: boolean): void {
   }
 }
 
+function clearAllModalErrors(): void {
+  document.querySelectorAll<HTMLElement>('[data-modal-error]').forEach((el) => {
+    el.textContent = '';
+    el.classList.add('hidden');
+  });
+}
+
+function showFormError(form: HTMLFormElement, message: string): void {
+  const errBox = form.querySelector<HTMLElement>('[data-modal-error]');
+  if (!errBox) return;
+  errBox.textContent = message;
+  errBox.classList.remove('hidden');
+}
+
+function setFormSubmitting(
+  form: HTMLFormElement,
+  isSubmitting: boolean,
+  loadingLabel = 'Menyimpan...'
+): void {
+  const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  if (!submitBtn) return;
+  const labelSpan = submitBtn.querySelector('span');
+  if (isSubmitting) {
+    submitBtn.dataset.origLabel = labelSpan ? labelSpan.textContent || '' : submitBtn.textContent || '';
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+    if (labelSpan) {
+      labelSpan.textContent = loadingLabel;
+    } else {
+      submitBtn.textContent = loadingLabel;
+    }
+  } else {
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+    const orig = submitBtn.dataset.origLabel;
+    if (orig !== undefined) {
+      if (labelSpan) {
+        labelSpan.textContent = orig;
+      } else {
+        submitBtn.textContent = orig;
+      }
+    }
+  }
+}
+
 function closeAllModals(): void {
   document.getElementById('modal-create-dispatch')?.classList.add('hidden');
   document.getElementById('modal-create-shelter')?.classList.add('hidden');
@@ -443,6 +557,7 @@ function closeAllModals(): void {
   document.getElementById('modal-create-team')?.classList.add('hidden');
   document.getElementById('modal-edit-team')?.classList.add('hidden');
   document.getElementById('modal-edit-dispatch')?.classList.add('hidden');
+  clearAllModalErrors();
   resolveConfirm(false);
 }
 
@@ -542,7 +657,7 @@ function renderShelterCard(s: Shelter): string {
       : 'bg-red-600';
 
   return `
-  <article class="card-elevated hover:-translate-y-0.5 transition-all flex flex-col justify-between overflow-hidden">
+  <article data-entity-id="${escapeHtml(s.shelter_id)}" class="card-elevated hover:-translate-y-0.5 transition-all flex flex-col justify-between overflow-hidden">
     <div class="p-5">
       <div class="flex items-center justify-between gap-2 mb-3">
         <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 tabular-nums text-[11px] font-semibold">${escapeHtml(s.shelter_id)}</span>
@@ -581,12 +696,28 @@ function renderShelterCard(s: Shelter): string {
 function renderOverview(): void {
   // Center table: Progres Misi Evakuasi
   const overviewTable = document.getElementById('overview-dispatches-table');
-  if (overviewTable) {
-    if (state.dispatches.length === 0) {
-      overviewTable.innerHTML =
-        '<tr><td colspan="4" class="py-10 text-center text-xs text-zinc-500">Belum ada misi evakuasi.</td></tr>';
+  const dateBadge = document.getElementById('overview-date-filter-badge');
+
+  if (dateBadge) {
+    if (state.selectedDate) {
+      dateBadge.textContent = `Tanggal: ${state.selectedDate} ×`;
+      dateBadge.classList.remove('hidden');
     } else {
-      overviewTable.innerHTML = state.dispatches
+      dateBadge.classList.add('hidden');
+    }
+  }
+
+  if (overviewTable) {
+    const list = state.selectedDate
+      ? state.dispatches.filter((d) => d.created_at.slice(0, 10) === state.selectedDate)
+      : state.dispatches;
+
+    if (list.length === 0) {
+      overviewTable.innerHTML = state.selectedDate
+        ? '<tr><td colspan="4" class="py-10 text-center text-xs text-zinc-500">Tidak ada misi pada tanggal yang dipilih.</td></tr>'
+        : '<tr><td colspan="4" class="py-10 text-center text-xs text-zinc-500">Belum ada misi evakuasi.</td></tr>';
+    } else {
+      overviewTable.innerHTML = list
         .slice(0, 6)
         .map((d) => {
           const isCompleted = d.status === 'Completed';
@@ -619,7 +750,7 @@ function renderOverview(): void {
     }
   }
 
-  // Right Widget 1: Schedule Calendar Strip
+  // Right Widget 1: Interactive Schedule Calendar Strip
   const calMonthEl = document.getElementById('right-calendar-month');
   const calStripEl = document.getElementById('right-calendar-strip');
   if (calMonthEl && calStripEl) {
@@ -631,17 +762,24 @@ function renderOverview(): void {
     for (let offset = -2; offset <= 2; offset++) {
       const d = new Date(today);
       d.setDate(today.getDate() + offset);
+      const isoDate = d.toISOString().slice(0, 10);
       const dayLabel = d.toLocaleDateString('id-ID', { weekday: 'short' });
       const dateNum = d.getDate();
       const isToday = offset === 0;
+      const isSelected = state.selectedDate === isoDate;
+      const isHighlighted = isSelected || (!state.selectedDate && isToday);
 
       daysHtml.push(`
-        <div class="py-2.5 px-1 rounded-xl flex flex-col items-center justify-center ${
-          isToday ? 'bg-red-600 text-white shadow-sm' : 'bg-zinc-50 text-zinc-600'
+        <button type="button" data-calendar-date="${isoDate}" class="cursor-pointer py-2.5 px-1 rounded-xl flex flex-col items-center justify-center transition-all ${
+          isHighlighted
+            ? 'bg-red-600 text-white shadow-sm'
+            : isToday
+            ? 'bg-zinc-100 text-zinc-900 ring-1 ring-red-600/40'
+            : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-600'
         }">
-          <span class="text-[10px] font-medium ${isToday ? 'text-red-100' : 'text-zinc-400'}">${escapeHtml(dayLabel)}</span>
+          <span class="text-[10px] font-medium ${isHighlighted ? 'text-red-100' : 'text-zinc-400'}">${escapeHtml(dayLabel)}</span>
           <span class="text-xs font-bold mt-1 tabular-nums">${dateNum}</span>
-        </div>
+        </button>
       `);
     }
     calStripEl.innerHTML = daysHtml.join('');
@@ -732,7 +870,7 @@ function renderTeamsView(): void {
           : '/avatar-log.svg';
 
       return `
-      <tr class="hover:bg-zinc-50 transition-colors">
+      <tr data-entity-id="${escapeHtml(t.team_id)}" class="hover:bg-zinc-50 transition-colors">
         <td class="px-5 py-3.5 font-semibold tabular-nums text-zinc-500">${escapeHtml(t.team_id)}</td>
         <td class="px-5 py-3.5">
           <div class="flex items-center gap-2.5">
@@ -787,7 +925,7 @@ function renderDispatchesView(): void {
           : 'text-zinc-700 font-medium';
 
       return `
-      <tr class="hover:bg-zinc-50 transition-colors ${isCompleted ? 'opacity-80' : ''}">
+      <tr data-entity-id="${escapeHtml(d.dispatch_id)}" class="hover:bg-zinc-50 transition-colors ${isCompleted ? 'opacity-80' : ''}">
         <td class="px-5 py-3.5 tabular-nums font-medium tabular-nums text-zinc-500">${escapeHtml(d.dispatch_id)}</td>
         <td class="px-5 py-3.5">
           <div class="font-bold text-zinc-950">${escapeHtml(d.incident_location)}</div>
@@ -1045,6 +1183,21 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-confirm-cancel')?.addEventListener('click', () => resolveConfirm(false));
   document.getElementById('btn-confirm-ok')?.addEventListener('click', () => resolveConfirm(true));
 
+  // Calendar strip click & reset
+  document.getElementById('right-calendar-strip')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-calendar-date]');
+    if (!btn) return;
+    const date = btn.dataset.calendarDate;
+    if (!date) return;
+    state.selectedDate = state.selectedDate === date ? null : date;
+    renderOverview();
+  });
+
+  document.getElementById('overview-date-filter-badge')?.addEventListener('click', () => {
+    state.selectedDate = null;
+    renderOverview();
+  });
+
   // Delegated actions
   document.addEventListener('click', async (e) => {
     const target = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
@@ -1078,12 +1231,20 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Tim dihapus.', 'success');
         await refreshAllData();
       } else if (action === 'complete-dispatch') {
-        const updated = await api.updateDispatch(id, { status: 'Completed' });
-        showToast(
-          `Misi ${updated.dispatch_id} selesai. ${updated.team_name} kembali siaga.`,
-          'success'
-        );
-        await refreshAllData();
+        const btn = target as HTMLButtonElement;
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+        try {
+          const updated = await api.updateDispatch(id, { status: 'Completed' });
+          showToast(
+            `Misi ${updated.dispatch_id} selesai. ${updated.team_name} kembali siaga.`,
+            'success'
+          );
+          await refreshAllData();
+        } finally {
+          btn.disabled = false;
+          btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
       } else if (action === 'edit-dispatch') {
         openEditDispatchModal(id);
       } else if (action === 'delete-dispatch') {
@@ -1105,6 +1266,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('form-create-dispatch')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
+    clearAllModalErrors();
+    setFormSubmitting(form, true, 'Mengirim...');
     try {
       const created = await api.createDispatch({
         shelter_id: (document.getElementById('dispatch-shelter') as HTMLSelectElement).value,
@@ -1124,13 +1287,19 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllModals();
       await refreshAllData();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Gagal menerbitkan misi.'), 'error');
+      const msg = getErrorMessage(err, 'Gagal menerbitkan misi.');
+      showFormError(form, msg);
+      showToast(msg, 'error');
+    } finally {
+      setFormSubmitting(form, false);
     }
   });
 
   document.getElementById('form-create-shelter')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
+    clearAllModalErrors();
+    setFormSubmitting(form, true);
     try {
       const created = await api.createShelter({
         name: (document.getElementById('shelter-name') as HTMLInputElement).value.trim(),
@@ -1145,12 +1314,19 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllModals();
       await refreshAllData();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Gagal menambahkan posko.'), 'error');
+      const msg = getErrorMessage(err, 'Gagal menambahkan posko.');
+      showFormError(form, msg);
+      showToast(msg, 'error');
+    } finally {
+      setFormSubmitting(form, false);
     }
   });
 
   document.getElementById('form-edit-shelter')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    clearAllModalErrors();
+    setFormSubmitting(form, true);
     try {
       const id = (document.getElementById('edit-shelter-id') as HTMLInputElement).value;
       await api.updateShelter(id, {
@@ -1166,13 +1342,19 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllModals();
       await refreshAllData();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Gagal memperbarui posko.'), 'error');
+      const msg = getErrorMessage(err, 'Gagal memperbarui posko.');
+      showFormError(form, msg);
+      showToast(msg, 'error');
+    } finally {
+      setFormSubmitting(form, false);
     }
   });
 
   document.getElementById('form-create-team')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
+    clearAllModalErrors();
+    setFormSubmitting(form, true);
     try {
       const created = await api.createTeam({
         name: (document.getElementById('team-name') as HTMLInputElement).value.trim(),
@@ -1187,12 +1369,19 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllModals();
       await refreshAllData();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Gagal menambahkan tim.'), 'error');
+      const msg = getErrorMessage(err, 'Gagal menambahkan tim.');
+      showFormError(form, msg);
+      showToast(msg, 'error');
+    } finally {
+      setFormSubmitting(form, false);
     }
   });
 
   document.getElementById('form-edit-team')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    clearAllModalErrors();
+    setFormSubmitting(form, true);
     try {
       const id = (document.getElementById('edit-team-id') as HTMLInputElement).value;
       await api.updateTeam(id, {
@@ -1208,12 +1397,19 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllModals();
       await refreshAllData();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Gagal memperbarui tim.'), 'error');
+      const msg = getErrorMessage(err, 'Gagal memperbarui tim.');
+      showFormError(form, msg);
+      showToast(msg, 'error');
+    } finally {
+      setFormSubmitting(form, false);
     }
   });
 
   document.getElementById('form-edit-dispatch')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    clearAllModalErrors();
+    setFormSubmitting(form, true);
     try {
       const id = (document.getElementById('edit-dispatch-id') as HTMLInputElement).value;
       await api.updateDispatch(id, {
@@ -1225,7 +1421,11 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllModals();
       await refreshAllData();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Gagal memperbarui misi.'), 'error');
+      const msg = getErrorMessage(err, 'Gagal memperbarui misi.');
+      showFormError(form, msg);
+      showToast(msg, 'error');
+    } finally {
+      setFormSubmitting(form, false);
     }
   });
 
@@ -1240,13 +1440,34 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSearchDropdown();
     }
   });
+  searchInput?.addEventListener('keydown', (e) => {
+    const dropdown = document.getElementById('search-results-dropdown');
+    if (!dropdown || dropdown.classList.contains('hidden')) return;
+    const items = dropdown.querySelectorAll<HTMLElement>('[data-search-view]');
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      state.searchActiveIndex = (state.searchActiveIndex + 1) % items.length;
+      updateSearchActiveItem();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      state.searchActiveIndex =
+        state.searchActiveIndex <= 0 ? items.length - 1 : state.searchActiveIndex - 1;
+      updateSearchActiveItem();
+    } else if (e.key === 'Enter' && state.searchActiveIndex >= 0) {
+      e.preventDefault();
+      const chosen = items[state.searchActiveIndex];
+      const view = chosen.dataset.searchView as ViewName | undefined;
+      if (view) selectSearchResult(view, chosen.dataset.searchId);
+    }
+  });
   document.getElementById('search-results-dropdown')?.addEventListener('click', (e) => {
     const item = (e.target as HTMLElement).closest<HTMLElement>('[data-search-view]');
     if (!item) return;
     const view = item.dataset.searchView as ViewName | undefined;
     if (view) {
-      switchView(view);
-      closeSearchDropdown();
+      selectSearchResult(view, item.dataset.searchId);
     }
   });
   document.getElementById('filter-shelters-status')?.addEventListener('change', (e) => {
