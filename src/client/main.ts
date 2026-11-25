@@ -235,6 +235,17 @@ function renderTelemetry(): void {
     }`;
   }
 
+  // Update resource category strip
+  const sarCount = state.teams.filter((t) => t.specialty === 'SAR').reduce((acc, t) => acc + t.member_count, 0);
+  const medCount = state.teams.filter((t) => t.specialty === 'Medical').reduce((acc, t) => acc + t.member_count, 0);
+  const logCount = state.teams.filter((t) => t.specialty === 'Logistics').reduce((acc, t) => acc + t.member_count, 0);
+  const activeShelters = state.shelters.filter((s) => s.status === 'Open').length;
+
+  setText('cat-sar-count', `${sarCount} personel`);
+  setText('cat-medical-count', `${medCount} personel`);
+  setText('cat-logistics-count', `${logCount} personel`);
+  setText('cat-shelter-count', `${activeShelters} posko buka`);
+
   setText('nav-count-shelters', String(state.shelters.length));
   setText('nav-count-teams', String(state.teams.length));
   setText('nav-count-dispatches', String(state.dispatches.length));
@@ -254,21 +265,24 @@ function renderShelterCard(s: Shelter): string {
       : 'bg-red-600';
 
   return `
-  <article class="card-elevated hover:border-zinc-400 transition-all flex flex-col justify-between overflow-hidden">
+  <article class="card-elevated hover:-translate-y-0.5 transition-all flex flex-col justify-between overflow-hidden">
     <div class="p-5">
       <div class="flex items-center justify-between gap-2 mb-3">
-        <span class="font-mono text-xs font-semibold text-zinc-500">${escapeHtml(s.shelter_id)}</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 font-mono text-[11px] font-semibold">${escapeHtml(s.shelter_id)}</span>
         <span class="${meta.badgeClass}">
           ${escapeHtml(meta.label)}
         </span>
       </div>
 
       <h3 class="text-sm font-bold text-zinc-950 leading-snug">${escapeHtml(s.name)}</h3>
-      <p class="text-xs text-zinc-500 mt-0.5 mb-4">${escapeHtml(s.location)}</p>
+      <div class="flex items-center gap-1.5 text-xs text-zinc-500 mt-1 mb-4">
+        <svg class="w-3.5 h-3.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+        <span class="truncate">${escapeHtml(s.location)}</span>
+      </div>
 
-      <div>
-        <div class="flex justify-between items-center text-xs mb-1.5">
-          <span class="text-zinc-600 font-medium">${remaining} tempat kosong</span>
+      <div class="space-y-1.5 pt-1 border-t border-zinc-100">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-zinc-600 font-semibold">${remaining} kasur tersedia</span>
           <span class="tabular-nums font-bold text-zinc-900">${s.current_occupancy} / ${s.max_capacity}</span>
         </div>
         <div class="w-full h-2 bg-zinc-200 rounded-full overflow-hidden">
@@ -279,9 +293,9 @@ function renderShelterCard(s: Shelter): string {
 
     <div class="px-5 py-3 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between text-xs">
       <span class="tabular-nums text-zinc-600 font-semibold">${pct}% terisi</span>
-      <div class="flex items-center gap-3">
-        <button type="button" data-action="edit-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer text-zinc-700 hover:text-zinc-950 font-semibold transition-colors">Edit</button>
-        <button type="button" data-action="delete-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer text-red-600 hover:text-red-700 font-semibold transition-colors">Hapus</button>
+      <div class="flex items-center gap-2">
+        <button type="button" data-action="edit-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer px-2.5 py-1 rounded bg-white border border-zinc-300 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 font-semibold text-[11px] transition-colors shadow-xs">Edit</button>
+        <button type="button" data-action="delete-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer px-2.5 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50 font-semibold text-[11px] transition-colors shadow-xs">Hapus</button>
       </div>
     </div>
   </article>`;
@@ -339,13 +353,22 @@ function renderOverview(): void {
                 <span class="text-zinc-300">·</span>
                 <span class="${badgeClass}">${badgeText}</span>
               </div>
-              <p class="text-xs font-semibold text-zinc-950 truncate">${escapeHtml(d.incident_location)}</p>
-              <p class="text-xs text-zinc-500 truncate mt-0.5">${escapeHtml(d.shelter_name)} (+${d.evacuee_count}) · ${escapeHtml(d.team_name)}</p>
+              <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(d.incident_location)}</p>
+              <div class="flex items-center gap-2 text-xs text-zinc-500 truncate mt-1">
+                <span class="truncate">${escapeHtml(d.shelter_name)}</span>
+                <span class="text-zinc-300">·</span>
+                <span class="font-semibold text-zinc-700">${d.evacuee_count} pengungsi</span>
+                <span class="text-zinc-300">·</span>
+                <span class="truncate">${escapeHtml(d.team_name)}</span>
+              </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               ${
                 !isCompleted
-                  ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">Selesai</button>`
+                  ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
+                      <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                      <span>Selesai</span>
+                    </button>`
                   : ''
               }
             </div>
@@ -372,12 +395,23 @@ function renderOverview(): void {
           const isStandby = t.status === 'Standby';
           const badgeClass = isStandby ? 'status-badge-standby' : 'status-badge-deployed';
           const badgeText = isStandby ? 'Siaga' : 'Bertugas';
+          const iconBg =
+            t.specialty === 'SAR'
+              ? 'bg-red-600 text-white'
+              : t.specialty === 'Medical'
+              ? 'bg-emerald-600 text-white'
+              : 'bg-amber-600 text-white';
 
           return `
           <div class="px-5 py-3 flex items-center justify-between gap-3 hover:bg-zinc-50 transition-colors">
-            <div class="min-w-0">
-              <p class="text-xs font-semibold text-zinc-950 truncate">${escapeHtml(t.name)}</p>
-              <p class="text-xs text-zinc-500 tabular-nums mt-0.5">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-8 h-8 rounded-lg ${iconBg} flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                ${t.specialty === 'SAR' ? 'SAR' : t.specialty === 'Medical' ? 'MED' : 'LOG'}
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(t.name)}</p>
+                <p class="text-[11px] text-zinc-500 tabular-nums mt-0.5">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
+              </div>
             </div>
             <span class="${badgeClass}">
               ${badgeText}
@@ -441,21 +475,34 @@ function renderTeamsView(): void {
       const isStandby = t.status === 'Standby';
       const badgeClass = isStandby ? 'status-badge-standby' : 'status-badge-deployed';
       const badgeText = isStandby ? 'Siaga' : 'Bertugas';
+      const iconBg =
+        t.specialty === 'SAR'
+          ? 'bg-red-600 text-white'
+          : t.specialty === 'Medical'
+          ? 'bg-emerald-600 text-white'
+          : 'bg-amber-600 text-white';
 
       return `
       <tr class="hover:bg-zinc-50 transition-colors">
-        <td class="px-5 py-3 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(t.team_id)}</td>
-        <td class="px-5 py-3 font-semibold text-zinc-950">${escapeHtml(t.name)}</td>
-        <td class="px-5 py-3 text-zinc-700 font-medium">${escapeHtml(SPECIALTY_LABELS[t.specialty])}</td>
-        <td class="px-5 py-3 tabular-nums text-zinc-700">${t.member_count} personel</td>
-        <td class="px-5 py-3">
+        <td class="px-5 py-3.5 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(t.team_id)}</td>
+        <td class="px-5 py-3.5">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded ${iconBg} text-[10px] font-bold flex items-center justify-center shrink-0">
+              ${t.specialty === 'SAR' ? 'S' : t.specialty === 'Medical' ? 'M' : 'L'}
+            </span>
+            <span class="font-bold text-zinc-950">${escapeHtml(t.name)}</span>
+          </div>
+        </td>
+        <td class="px-5 py-3.5 text-zinc-700 font-medium">${escapeHtml(SPECIALTY_LABELS[t.specialty])}</td>
+        <td class="px-5 py-3.5 tabular-nums text-zinc-700 font-semibold">${t.member_count} personel</td>
+        <td class="px-5 py-3.5">
           <span class="${badgeClass}">
             ${badgeText}
           </span>
         </td>
-        <td class="px-5 py-3 text-right space-x-3 whitespace-nowrap">
-          <button type="button" data-action="edit-team" data-id="${escapeHtml(t.team_id)}" class="text-xs font-semibold text-zinc-700 hover:text-zinc-950">Edit</button>
-          <button type="button" data-action="delete-team" data-id="${escapeHtml(t.team_id)}" class="text-xs font-semibold text-red-600 hover:text-red-700">Hapus</button>
+        <td class="px-5 py-3.5 text-right space-x-2 whitespace-nowrap">
+          <button type="button" data-action="edit-team" data-id="${escapeHtml(t.team_id)}" class="px-2.5 py-1 rounded bg-white border border-zinc-300 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 font-semibold text-xs shadow-xs transition-colors">Edit</button>
+          <button type="button" data-action="delete-team" data-id="${escapeHtml(t.team_id)}" class="px-2.5 py-1 rounded bg-white border border-red-200 text-red-600 hover:bg-red-50 font-semibold text-xs shadow-xs transition-colors">Hapus</button>
         </td>
       </tr>`;
     })
@@ -501,32 +548,35 @@ function renderDispatchesView(): void {
 
       return `
       <tr class="hover:bg-zinc-50 transition-colors ${isCompleted ? 'opacity-80' : ''}">
-        <td class="px-5 py-3 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(d.dispatch_id)}</td>
-        <td class="px-5 py-3">
-          <div class="font-semibold text-zinc-950">${escapeHtml(d.incident_location)}</div>
+        <td class="px-5 py-3.5 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(d.dispatch_id)}</td>
+        <td class="px-5 py-3.5">
+          <div class="font-bold text-zinc-950">${escapeHtml(d.incident_location)}</div>
           <div class="text-[11px] text-zinc-500 tabular-nums">${escapeHtml(formatTimestamp(d.created_at))}</div>
         </td>
-        <td class="px-5 py-3">
-          <div class="font-semibold text-zinc-900">${escapeHtml(d.shelter_name)}</div>
-          <div class="text-[11px] text-zinc-500 tabular-nums">+${d.evacuee_count} pengungsi</div>
+        <td class="px-5 py-3.5">
+          <div class="font-bold text-zinc-900">${escapeHtml(d.shelter_name)}</div>
+          <div class="text-[11px] text-zinc-500 tabular-nums font-semibold">${d.evacuee_count} pengungsi</div>
         </td>
-        <td class="px-5 py-3">
+        <td class="px-5 py-3.5">
           <div class="text-zinc-900 font-medium">${escapeHtml(d.team_name)}</div>
           <div class="text-[11px] ${urgencyClass}">${escapeHtml(specialtyLabel)} · Urgensi ${escapeHtml(URGENCY_LABELS[d.urgency])}</div>
         </td>
-        <td class="px-5 py-3">
+        <td class="px-5 py-3.5">
           <span class="${badgeClass}">
             ${badgeText}
           </span>
         </td>
-        <td class="px-5 py-3 text-right space-x-2 whitespace-nowrap">
+        <td class="px-5 py-3.5 text-right space-x-2 whitespace-nowrap">
           ${
             !isCompleted
-              ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">Selesai</button>`
+              ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                  <span>Selesai</span>
+                </button>`
               : ''
           }
-          <button type="button" data-action="edit-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2 py-1 text-xs font-semibold text-zinc-700 hover:text-zinc-950">Edit</button>
-          <button type="button" data-action="delete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2 py-1 text-xs font-semibold text-red-600 hover:text-red-700">
+          <button type="button" data-action="edit-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2.5 py-1 rounded bg-white border border-zinc-300 text-xs font-semibold text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-xs">Edit</button>
+          <button type="button" data-action="delete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2.5 py-1 rounded bg-white border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 shadow-xs">
             ${isCompleted ? 'Hapus' : 'Batalkan'}
           </button>
         </td>
@@ -767,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         urgency: (document.getElementById('dispatch-urgency') as HTMLSelectElement).value as DispatchUrgency,
       });
       showToast(
-        `${created.team_name} dikerahkan (+${created.evacuee_count} tempat dipesan).`,
+        `${created.team_name} dikerahkan (${created.evacuee_count} tempat dipesan).`,
         'success'
       );
       form.reset();
