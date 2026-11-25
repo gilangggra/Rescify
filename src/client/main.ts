@@ -926,7 +926,7 @@ function renderDispatchesView(): void {
 
       return `
       <tr data-entity-id="${escapeHtml(d.dispatch_id)}" class="hover:bg-zinc-50 transition-colors ${isCompleted ? 'opacity-80' : ''}">
-        <td class="px-5 py-3.5 tabular-nums font-medium tabular-nums text-zinc-500">${escapeHtml(d.dispatch_id)}</td>
+        <td class="px-5 py-3.5 tabular-nums font-semibold text-zinc-500 whitespace-nowrap">${escapeHtml(d.dispatch_id)}</td>
         <td class="px-5 py-3.5">
           <div class="font-bold text-zinc-950">${escapeHtml(d.incident_location)}</div>
           <div class="text-[11px] text-zinc-500 tabular-nums">${escapeHtml(formatTimestamp(d.created_at))}</div>
