@@ -253,17 +253,6 @@ function renderTelemetry(): void {
     }`;
   }
 
-  // Update resource category strip
-  const sarCount = state.teams.filter((t) => t.specialty === 'SAR').reduce((acc, t) => acc + t.member_count, 0);
-  const medCount = state.teams.filter((t) => t.specialty === 'Medical').reduce((acc, t) => acc + t.member_count, 0);
-  const logCount = state.teams.filter((t) => t.specialty === 'Logistics').reduce((acc, t) => acc + t.member_count, 0);
-  const activeShelters = state.shelters.filter((s) => s.status === 'Open').length;
-
-  setText('cat-sar-count', `${sarCount} personel`);
-  setText('cat-medical-count', `${medCount} personel`);
-  setText('cat-logistics-count', `${logCount} personel`);
-  setText('cat-shelter-count', `${activeShelters} posko buka`);
-
   setText('nav-count-shelters', String(state.shelters.length));
   setText('nav-count-teams', String(state.teams.length));
   setText('nav-count-dispatches', String(state.dispatches.length));
