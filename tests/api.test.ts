@@ -27,7 +27,7 @@ async function requestJson<T>(
   return { status: res.status, json };
 }
 
-describe('SafeGrid REST API & Capacity/Resource Invariants', () => {
+describe('Rescify REST API & Capacity/Resource Invariants', () => {
   before(async () => {
     process.env.NODE_ENV = 'test';
     await ready;
@@ -50,7 +50,7 @@ describe('SafeGrid REST API & Capacity/Resource Invariants', () => {
     resetStore();
   });
 
-  it('GET /api/health returns 200 OK with SafeGrid telemetry counts', async () => {
+  it('GET /api/health returns 200 OK with Rescify telemetry counts', async () => {
     const { status, json } = await requestJson<{
       status: string;
       storage: string;

@@ -876,7 +876,7 @@ async function refreshAllData(): Promise<void> {
     syncSystemNotifications();
     renderAll();
   } catch (err) {
-    showToast(getErrorMessage(err, 'Gagal memuat data SafeGrid.'), 'error');
+    showToast(getErrorMessage(err, 'Gagal memuat data Rescify.'), 'error');
   }
 }
 

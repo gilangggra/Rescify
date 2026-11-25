@@ -29,7 +29,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
   const activeDispatches = store.emergency_dispatches.filter((d) => d.status === 'Active').length;
   const standbyTeams = store.response_teams.filter((t) => t.status === 'Standby').length;
 
-  sendSuccess(res, 200, 'SafeGrid API is running', {
+  sendSuccess(res, 200, 'Rescify API is running', {
     status: 'ok',
     storage: 'in-memory-json',
     counts: {
@@ -79,7 +79,7 @@ export const ready = setupFrontend(app);
 if (require.main === module) {
   ready.then(() => {
     app.listen(PORT, () => {
-      console.log(`SafeGrid Command Center running on http://localhost:${PORT}`);
+      console.log(`Rescify Command Center running on http://localhost:${PORT}`);
     });
   });
 }
