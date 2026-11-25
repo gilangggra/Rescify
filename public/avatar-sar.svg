@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="64" fill="#FEE2E2"/>
+  <!-- Shoulders / SAR Jacket -->
+  <path d="M22 128C22 103 39 90 64 90C89 90 106 103 106 128H22Z" fill="#DC2626"/>
+  <path d="M52 90L64 106L76 90H52Z" fill="#18181B"/>
+  <!-- Neck -->
+  <rect x="54" y="74" width="20" height="20" rx="8" fill="#D9A17E"/>
+  <!-- Ears -->
+  <circle cx="38" cy="58" r="6.5" fill="#D9A17E"/>
+  <circle cx="90" cy="58" r="6.5" fill="#D9A17E"/>
+  <!-- Head -->
+  <rect x="40" y="31" width="48" height="53" rx="24" fill="#E8B494"/>
+  <!-- Hair -->
+  <path d="M39 48C39 29 51 22 64 22C77 22 89 29 89 48C86 40 77 35 64 35C51 35 42 40 39 48Z" fill="#27272A"/>
+  <!-- Eyes & Brows -->
+  <path d="M49 49H57" stroke="#27272A" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M71 49H79" stroke="#27272A" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="53" cy="56" r="2.7" fill="#18181B"/>
+  <circle cx="75" cy="56" r="2.7" fill="#18181B"/>
+  <!-- Smile -->
+  <path d="M57 71C59.5 73.5 68.5 73.5 71 71" stroke="#8C523B" stroke-width="2.3" stroke-linecap="round"/>
+</svg>

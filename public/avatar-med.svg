@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="64" fill="#D1FAE5"/>
+  <!-- Shoulders / Medical Coat -->
+  <path d="M22 128C22 103 39 90 64 90C89 90 106 103 106 128H22Z" fill="#059669"/>
+  <path d="M49 90L64 114L79 90H49Z" fill="#FFFFFF"/>
+  <!-- Neck -->
+  <rect x="55" y="74" width="18" height="20" rx="8" fill="#ECC0A4"/>
+  <!-- Hair Back -->
+  <circle cx="64" cy="54" r="29" fill="#27272A"/>
+  <!-- Head -->
+  <rect x="42" y="32" width="44" height="51" rx="22" fill="#F5CEB5"/>
+  <!-- Hair Bangs -->
+  <path d="M41 48C41 32 52 25 64 25C76 25 87 32 87 48C82 39 73 36 64 36C55 36 46 39 41 48Z" fill="#27272A"/>
+  <!-- Eyes & Brows -->
+  <path d="M50 49C52 47.5 55 47.5 57 49" stroke="#27272A" stroke-width="2" stroke-linecap="round"/>
+  <path d="M71 49C73 47.5 76 47.5 78 49" stroke="#27272A" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="53.5" cy="55.5" r="2.6" fill="#18181B"/>
+  <circle cx="74.5" cy="55.5" r="2.6" fill="#18181B"/>
+  <!-- Smile -->
+  <path d="M57 70C59.5 73 68.5 73 71 70" stroke="#9A5B44" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

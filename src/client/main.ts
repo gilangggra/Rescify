@@ -266,7 +266,7 @@ function renderShelterCard(s: Shelter): string {
   <article class="card-elevated hover:-translate-y-0.5 transition-all flex flex-col justify-between overflow-hidden">
     <div class="p-5">
       <div class="flex items-center justify-between gap-2 mb-3">
-        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 font-mono text-[11px] font-semibold">${escapeHtml(s.shelter_id)}</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 tabular-nums text-[11px] font-semibold">${escapeHtml(s.shelter_id)}</span>
         <span class="${meta.badgeClass}">
           ${escapeHtml(meta.label)}
         </span>
@@ -326,7 +326,7 @@ function renderOverview(): void {
           <tr class="hover:bg-zinc-50 transition-colors">
             <td class="px-5 py-3.5">
               <div class="font-bold text-zinc-950">${escapeHtml(d.incident_location)}</div>
-              <div class="text-[11px] text-zinc-500 font-mono mt-0.5">${escapeHtml(d.dispatch_id)} · ${escapeHtml(URGENCY_LABELS[d.urgency])}</div>
+              <div class="text-[11px] text-zinc-500 tabular-nums mt-0.5">${escapeHtml(d.dispatch_id)} · ${escapeHtml(URGENCY_LABELS[d.urgency])}</div>
             </td>
             <td class="px-5 py-3.5">
               <div class="font-semibold text-zinc-800">${escapeHtml(d.shelter_name)}</div>
@@ -394,22 +394,20 @@ function renderOverview(): void {
           const isStandby = t.status === 'Standby';
           const badgeClass = isStandby ? 'status-badge-standby' : 'status-badge-deployed';
           const badgeText = isStandby ? 'Siaga' : 'Bertugas';
-          const avatarBg =
+          const avatarSrc =
             t.specialty === 'SAR'
-              ? 'bg-red-600 text-white'
+              ? '/avatar-sar.svg'
               : t.specialty === 'Medical'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-amber-600 text-white';
+              ? '/avatar-med.svg'
+              : '/avatar-log.svg';
 
           return `
           <div class="flex items-center justify-between gap-2.5 py-1.5">
             <div class="flex items-center gap-2.5 min-w-0">
-              <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">
-                ${t.specialty === 'SAR' ? 'SAR' : t.specialty === 'Medical' ? 'MED' : 'LOG'}
-              </div>
+              <img src="${avatarSrc}" alt="${escapeHtml(t.name)}" class="w-9 h-9 rounded-full object-cover border border-zinc-200 shrink-0 shadow-xs bg-zinc-100">
               <div class="min-w-0">
                 <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(t.name)}</p>
-                <p class="text-[10px] text-zinc-500 truncate">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
+                <p class="text-[11px] text-zinc-500 truncate">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
               </div>
             </div>
             <span class="${badgeClass} shrink-0">${badgeText}</span>
@@ -433,7 +431,7 @@ function renderOverview(): void {
           return `
           <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-center flex flex-col justify-between gap-2">
             <div>
-              <span class="inline-block px-1.5 py-0.5 rounded bg-white border border-zinc-200 font-mono text-[9px] font-bold text-zinc-600">${escapeHtml(s.shelter_id)}</span>
+              <span class="inline-block px-1.5 py-0.5 rounded bg-white border border-zinc-200 tabular-nums text-[9px] font-bold text-zinc-600">${escapeHtml(s.shelter_id)}</span>
               <p class="text-[11px] font-bold text-zinc-950 truncate mt-1.5" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</p>
               <p class="text-[10px] text-zinc-500 tabular-nums">${remaining} kosong</p>
             </div>
@@ -499,21 +497,19 @@ function renderTeamsView(): void {
       const isStandby = t.status === 'Standby';
       const badgeClass = isStandby ? 'status-badge-standby' : 'status-badge-deployed';
       const badgeText = isStandby ? 'Siaga' : 'Bertugas';
-      const iconBg =
+      const avatarSrc =
         t.specialty === 'SAR'
-          ? 'bg-red-600 text-white'
+          ? '/avatar-sar.svg'
           : t.specialty === 'Medical'
-          ? 'bg-emerald-600 text-white'
-          : 'bg-amber-600 text-white';
+          ? '/avatar-med.svg'
+          : '/avatar-log.svg';
 
       return `
       <tr class="hover:bg-zinc-50 transition-colors">
-        <td class="px-5 py-3.5 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(t.team_id)}</td>
+        <td class="px-5 py-3.5 font-semibold tabular-nums text-zinc-500">${escapeHtml(t.team_id)}</td>
         <td class="px-5 py-3.5">
           <div class="flex items-center gap-2.5">
-            <span class="w-6 h-6 rounded ${iconBg} text-[10px] font-bold flex items-center justify-center shrink-0">
-              ${t.specialty === 'SAR' ? 'S' : t.specialty === 'Medical' ? 'M' : 'L'}
-            </span>
+            <img src="${avatarSrc}" alt="${escapeHtml(t.name)}" class="w-7 h-7 rounded-full object-cover border border-zinc-200 shrink-0 bg-zinc-100">
             <span class="font-bold text-zinc-950">${escapeHtml(t.name)}</span>
           </div>
         </td>
@@ -572,7 +568,7 @@ function renderDispatchesView(): void {
 
       return `
       <tr class="hover:bg-zinc-50 transition-colors ${isCompleted ? 'opacity-80' : ''}">
-        <td class="px-5 py-3.5 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(d.dispatch_id)}</td>
+        <td class="px-5 py-3.5 tabular-nums font-medium tabular-nums text-zinc-500">${escapeHtml(d.dispatch_id)}</td>
         <td class="px-5 py-3.5">
           <div class="font-bold text-zinc-950">${escapeHtml(d.incident_location)}</div>
           <div class="text-[11px] text-zinc-500 tabular-nums">${escapeHtml(formatTimestamp(d.created_at))}</div>
