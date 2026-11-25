@@ -9,7 +9,7 @@ const INITIAL_SEED_DATA: SafeGridStore = {
   shelters: [
     {
       shelter_id: 'SHL-01',
-      name: 'GOR Baleendah Main Shelter',
+      name: 'Posko Utama GOR Baleendah',
       location: 'Baleendah, Kab. Bandung',
       max_capacity: 120,
       current_occupancy: 45,
@@ -35,21 +35,21 @@ const INITIAL_SEED_DATA: SafeGridStore = {
   response_teams: [
     {
       team_id: 'TM-01',
-      name: 'Alpha Water Rescue (SAR)',
+      name: 'Tim SAR Basarnas Bandung',
       specialty: 'SAR',
       member_count: 8,
       status: 'Deployed',
     },
     {
       team_id: 'TM-02',
-      name: 'Bravo Rapid Medical Unit',
+      name: 'Tim Medis PMI & PSC 119',
       specialty: 'Medical',
       member_count: 6,
       status: 'Standby',
     },
     {
       team_id: 'TM-03',
-      name: 'Charlie Relief & Logistics',
+      name: 'Tim Logistik Tagana BPBD',
       specialty: 'Logistics',
       member_count: 10,
       status: 'Standby',

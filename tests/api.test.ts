@@ -158,7 +158,7 @@ describe('SafeGrid REST API & Capacity/Resource Invariants', () => {
     });
     assert.equal(dispatchRes.status, 201);
     assert.equal(dispatchRes.json.data.shelter_name, 'Gedung Serbaguna Bojongsoang');
-    assert.equal(dispatchRes.json.data.team_name, 'Bravo Rapid Medical Unit');
+    assert.equal(dispatchRes.json.data.team_name, 'Tim Medis PMI & PSC 119');
 
     const shl3Full = await requestJson<Shelter>('GET', '/api/shelters/SHL-03');
     assert.equal(shl3Full.json.data.current_occupancy, 100);

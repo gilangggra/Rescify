@@ -133,7 +133,7 @@
         </button>
 
         <div class="relative flex-1">
-          <input type="search" id="global-search" aria-label="Cari posko, tim, atau misi" placeholder="Cari sesuatu..." class="w-full h-10 pl-4 pr-10 bg-white border border-zinc-200/80 rounded-xl text-xs text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all shadow-xs">
+          <input type="search" id="global-search" aria-label="Cari posko, tim, atau misi" placeholder="Cari sesuatu..." class="w-full h-10 pl-4 pr-10 bg-white border border-zinc-200/80 rounded-xl text-xs text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 transition-all shadow-xs">
           <svg class="w-4 h-4 text-zinc-400 absolute right-3.5 top-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
@@ -227,7 +227,7 @@
             <p class="text-xs text-zinc-500">Kelola lokasi, kapasitas tempat tidur, dan status operasional posko darurat.</p>
           </div>
           <div class="flex items-center gap-2">
-            <select id="filter-shelters-status" class="h-9 px-3 bg-white border border-zinc-300 rounded-lg text-xs font-semibold text-zinc-800 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="filter-shelters-status" class="h-9 px-3 bg-white border border-zinc-300 rounded-lg text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="ALL">Semua Status</option>
               <option value="Open">Buka</option>
               <option value="Full">Penuh</option>
@@ -257,7 +257,7 @@
             <p class="text-xs text-zinc-500">Daftar unit SAR, Medis, dan Logistik beserta status kesiapannya di lapangan.</p>
           </div>
           <div class="flex items-center gap-2">
-            <select id="filter-teams-status" class="h-9 px-3 bg-white border border-zinc-300 rounded-lg text-xs font-semibold text-zinc-800 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="filter-teams-status" class="h-9 px-3 bg-white border border-zinc-300 rounded-lg text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="ALL">Semua Status</option>
               <option value="Standby">Siaga</option>
               <option value="Deployed">Bertugas</option>
@@ -301,7 +301,7 @@
             <p class="text-xs text-zinc-500">Pantau misi aktif, selesaikan untuk melepas tim, atau batalkan untuk mengembalikan kapasitas posko.</p>
           </div>
           <div class="flex items-center gap-2">
-            <select id="filter-dispatches-status" class="h-9 px-3 bg-white border border-zinc-300 rounded-lg text-xs font-semibold text-zinc-800 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="filter-dispatches-status" class="h-9 px-3 bg-white border border-zinc-300 rounded-lg text-xs font-semibold text-zinc-800 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="ALL">Semua Status</option>
               <option value="Active">Aktif</option>
               <option value="Completed">Selesai</option>
@@ -400,28 +400,28 @@
       <form id="form-create-dispatch" class="p-5 space-y-3.5">
         <div>
           <label for="dispatch-shelter" class="block text-xs font-semibold text-zinc-700 mb-1">Posko Tujuan</label>
-          <select id="dispatch-shelter" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <select id="dispatch-shelter" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
             <option value="" disabled selected>Pilih posko...</option>
           </select>
         </div>
         <div>
           <label for="dispatch-team" class="block text-xs font-semibold text-zinc-700 mb-1">Tim Lapangan</label>
-          <select id="dispatch-team" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <select id="dispatch-team" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
             <option value="" disabled selected>Pilih tim siaga...</option>
           </select>
         </div>
         <div>
           <label for="dispatch-location" class="block text-xs font-semibold text-zinc-700 mb-1">Lokasi Kejadian</label>
-          <input type="text" id="dispatch-location" required placeholder="cth., Jl. Raya Banjaran KM 12" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="dispatch-location" required placeholder="cth., Jl. Raya Banjaran KM 12" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="dispatch-evacuees" class="block text-xs font-semibold text-zinc-700 mb-1">Jumlah Pengungsi</label>
-            <input type="number" id="dispatch-evacuees" min="1" value="25" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <input type="number" id="dispatch-evacuees" min="1" value="25" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
           </div>
           <div>
             <label for="dispatch-urgency" class="block text-xs font-semibold text-zinc-700 mb-1">Urgensi</label>
-            <select id="dispatch-urgency" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="dispatch-urgency" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="Critical">Kritis</option>
               <option value="High" selected>Tinggi</option>
               <option value="Medium">Sedang</option>
@@ -455,15 +455,15 @@
       <form id="form-create-shelter" class="p-5 space-y-3.5">
         <div>
           <label for="shelter-name" class="block text-xs font-semibold text-zinc-700 mb-1">Nama Posko</label>
-          <input type="text" id="shelter-name" required placeholder="cth., GOR Ciparay Posko Utama" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="shelter-name" required placeholder="cth., GOR Ciparay Posko Utama" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div>
           <label for="shelter-location" class="block text-xs font-semibold text-zinc-700 mb-1">Kecamatan / Alamat</label>
-          <input type="text" id="shelter-location" required placeholder="cth., Ciparay, Kab. Bandung" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="shelter-location" required placeholder="cth., Ciparay, Kab. Bandung" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div>
           <label for="shelter-capacity" class="block text-xs font-semibold text-zinc-700 mb-1">Kapasitas Maksimal</label>
-          <input type="number" id="shelter-capacity" min="1" value="100" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="number" id="shelter-capacity" min="1" value="100" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200">
           <button type="button" data-close-modal class="btn-secondary">Batal</button>
@@ -492,22 +492,22 @@
         <input type="hidden" id="edit-shelter-id">
         <div>
           <label for="edit-shelter-name" class="block text-xs font-semibold text-zinc-700 mb-1">Nama Posko</label>
-          <input type="text" id="edit-shelter-name" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="edit-shelter-name" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div>
           <label for="edit-shelter-location" class="block text-xs font-semibold text-zinc-700 mb-1">Kecamatan / Alamat</label>
-          <input type="text" id="edit-shelter-location" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="edit-shelter-location" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="edit-shelter-capacity" class="block text-xs font-semibold text-zinc-700 mb-1">
               Kapasitas Maks <span id="edit-shelter-occ-hint" class="text-zinc-400 font-normal"></span>
             </label>
-            <input type="number" id="edit-shelter-capacity" min="1" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <input type="number" id="edit-shelter-capacity" min="1" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
           </div>
           <div>
             <label for="edit-shelter-status" class="block text-xs font-semibold text-zinc-700 mb-1">Status</label>
-            <select id="edit-shelter-status" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="edit-shelter-status" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="Open">Buka</option>
               <option value="Full">Penuh</option>
               <option value="Closed">Tutup</option>
@@ -535,12 +535,12 @@
       <form id="form-create-team" class="p-5 space-y-3.5">
         <div>
           <label for="team-name" class="block text-xs font-semibold text-zinc-700 mb-1">Nama Unit</label>
-          <input type="text" id="team-name" required placeholder="cth., Unit Delta Penyelamat Air" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="team-name" required placeholder="cth., Tim SAR BPBD Kab. Bandung" class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="team-specialty" class="block text-xs font-semibold text-zinc-700 mb-1">Spesialisasi</label>
-            <select id="team-specialty" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="team-specialty" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="SAR">SAR</option>
               <option value="Medical">Medis</option>
               <option value="Logistics">Logistik</option>
@@ -548,7 +548,7 @@
           </div>
           <div>
             <label for="team-members" class="block text-xs font-semibold text-zinc-700 mb-1">Jumlah Personel</label>
-            <input type="number" id="team-members" min="1" value="6" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <input type="number" id="team-members" min="1" value="6" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
           </div>
         </div>
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200">
@@ -578,12 +578,12 @@
         <input type="hidden" id="edit-team-id">
         <div>
           <label for="edit-team-name" class="block text-xs font-semibold text-zinc-700 mb-1">Nama Unit</label>
-          <input type="text" id="edit-team-name" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="edit-team-name" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label for="edit-team-specialty" class="block text-xs font-semibold text-zinc-700 mb-1">Spesialisasi</label>
-            <select id="edit-team-specialty" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="edit-team-specialty" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="SAR">SAR</option>
               <option value="Medical">Medis</option>
               <option value="Logistics">Logistik</option>
@@ -591,11 +591,11 @@
           </div>
           <div>
             <label for="edit-team-members" class="block text-xs font-semibold text-zinc-700 mb-1">Personel</label>
-            <input type="number" id="edit-team-members" min="1" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <input type="number" id="edit-team-members" min="1" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs tabular-nums text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
           </div>
           <div>
             <label for="edit-team-status" class="block text-xs font-semibold text-zinc-700 mb-1">Status</label>
-            <select id="edit-team-status" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="edit-team-status" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="Standby">Siaga</option>
               <option value="Deployed">Bertugas</option>
             </select>
@@ -623,12 +623,12 @@
         <input type="hidden" id="edit-dispatch-id">
         <div>
           <label for="edit-dispatch-location" class="block text-xs font-semibold text-zinc-700 mb-1">Lokasi Kejadian</label>
-          <input type="text" id="edit-dispatch-location" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+          <input type="text" id="edit-dispatch-location" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="edit-dispatch-urgency" class="block text-xs font-semibold text-zinc-700 mb-1">Urgensi</label>
-            <select id="edit-dispatch-urgency" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="edit-dispatch-urgency" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="Critical">Kritis</option>
               <option value="High">Tinggi</option>
               <option value="Medium">Sedang</option>
@@ -637,7 +637,7 @@
           </div>
           <div>
             <label for="edit-dispatch-status" class="block text-xs font-semibold text-zinc-700 mb-1">Status Misi</label>
-            <select id="edit-dispatch-status" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-xs">
+            <select id="edit-dispatch-status" required class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 shadow-xs">
               <option value="Active">Aktif</option>
               <option value="Completed">Selesai</option>
             </select>
