@@ -243,6 +243,125 @@ function renderNotifications(): void {
     .join('');
 }
 
+function closeSearchDropdown(): void {
+  document.getElementById('search-results-dropdown')?.classList.add('hidden');
+}
+
+function renderSearchDropdown(): void {
+  const dropdown = document.getElementById('search-results-dropdown');
+  if (!dropdown) return;
+
+  const q = state.globalSearch.trim().toLowerCase();
+  if (!q) {
+    dropdown.classList.add('hidden');
+    dropdown.innerHTML = '';
+    return;
+  }
+
+  const matchedShelters = state.shelters.filter(
+    (s) =>
+      s.name.toLowerCase().includes(q) ||
+      s.location.toLowerCase().includes(q) ||
+      s.shelter_id.toLowerCase().includes(q)
+  );
+  const matchedTeams = state.teams.filter(
+    (t) =>
+      t.name.toLowerCase().includes(q) ||
+      t.specialty.toLowerCase().includes(q) ||
+      SPECIALTY_LABELS[t.specialty].toLowerCase().includes(q) ||
+      t.team_id.toLowerCase().includes(q)
+  );
+  const matchedDispatches = state.dispatches.filter(
+    (d) =>
+      d.incident_location.toLowerCase().includes(q) ||
+      d.shelter_name.toLowerCase().includes(q) ||
+      d.team_name.toLowerCase().includes(q) ||
+      d.dispatch_id.toLowerCase().includes(q)
+  );
+
+  const sections: string[] = [];
+
+  if (matchedShelters.length > 0) {
+    sections.push(`
+      <div>
+        <div class="px-3.5 py-2 bg-zinc-50 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Posko Pengungsian (${matchedShelters.length})</div>
+        <div class="divide-y divide-zinc-100">
+          ${matchedShelters
+            .slice(0, 4)
+            .map((s) => {
+              const meta = SHELTER_STATUS_META[s.status];
+              return `
+              <button type="button" data-search-view="shelters" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(s.name)}</p>
+                  <p class="text-[11px] text-zinc-500 truncate">${escapeHtml(s.location)} · ${s.current_occupancy}/${s.max_capacity}</p>
+                </div>
+                <span class="${meta.badgeClass} shrink-0">${escapeHtml(meta.label)}</span>
+              </button>`;
+            })
+            .join('')}
+        </div>
+      </div>
+    `);
+  }
+
+  if (matchedTeams.length > 0) {
+    sections.push(`
+      <div>
+        <div class="px-3.5 py-2 bg-zinc-50 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Tim Lapangan (${matchedTeams.length})</div>
+        <div class="divide-y divide-zinc-100">
+          ${matchedTeams
+            .slice(0, 4)
+            .map((t) => {
+              const isStandby = t.status === 'Standby';
+              return `
+              <button type="button" data-search-view="teams" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(t.name)}</p>
+                  <p class="text-[11px] text-zinc-500 truncate">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
+                </div>
+                <span class="${isStandby ? 'status-badge-standby' : 'status-badge-deployed'} shrink-0">${isStandby ? 'Siaga' : 'Bertugas'}</span>
+              </button>`;
+            })
+            .join('')}
+        </div>
+      </div>
+    `);
+  }
+
+  if (matchedDispatches.length > 0) {
+    sections.push(`
+      <div>
+        <div class="px-3.5 py-2 bg-zinc-50 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Misi Evakuasi (${matchedDispatches.length})</div>
+        <div class="divide-y divide-zinc-100">
+          ${matchedDispatches
+            .slice(0, 4)
+            .map((d) => {
+              const isCompleted = d.status === 'Completed';
+              return `
+              <button type="button" data-search-view="dispatches" class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-zinc-950 truncate">${escapeHtml(d.incident_location)}</p>
+                  <p class="text-[11px] text-zinc-500 truncate">${escapeHtml(d.shelter_name)} · ${escapeHtml(d.team_name)}</p>
+                </div>
+                <span class="${isCompleted ? 'status-badge-completed' : 'status-badge-active'} shrink-0">${isCompleted ? 'Selesai' : 'Aktif'}</span>
+              </button>`;
+            })
+            .join('')}
+        </div>
+      </div>
+    `);
+  }
+
+  if (sections.length === 0) {
+    dropdown.innerHTML = `<div class="py-6 px-4 text-center text-xs text-zinc-500">Tidak ada hasil untuk "<span class="font-semibold text-zinc-800">${escapeHtml(state.globalSearch.trim())}</span>".</div>`;
+  } else {
+    dropdown.innerHTML = sections.join('');
+  }
+
+  dropdown.classList.remove('hidden');
+}
+
 function toggleNotificationsPanel(): void {
   const panel = document.getElementById('notifications-panel');
   if (!panel) return;
@@ -919,11 +1038,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('click', (e) => {
-    const panel = document.getElementById('notifications-panel');
-    if (!panel || panel.classList.contains('hidden')) return;
     const target = e.target as HTMLElement;
-    if (!panel.contains(target) && !target.closest('[data-toggle-notifications]')) {
-      closeNotificationsPanel();
+
+    const panel = document.getElementById('notifications-panel');
+    if (panel && !panel.classList.contains('hidden')) {
+      if (!panel.contains(target) && !target.closest('[data-toggle-notifications]')) {
+        closeNotificationsPanel();
+      }
+    }
+
+    const searchDropdown = document.getElementById('search-results-dropdown');
+    if (searchDropdown && !searchDropdown.classList.contains('hidden')) {
+      if (!searchDropdown.contains(target) && target.id !== 'global-search') {
+        closeSearchDropdown();
+      }
     }
   });
 
@@ -932,6 +1060,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') {
       closeAllModals();
       closeNotificationsPanel();
+      closeSearchDropdown();
       return;
     }
     if (
@@ -1133,12 +1262,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Search & Filters
-  document.getElementById('global-search')?.addEventListener('input', (e) => {
+  const searchInput = document.getElementById('global-search');
+  searchInput?.addEventListener('input', (e) => {
     state.globalSearch = (e.currentTarget as HTMLInputElement).value;
+    renderSearchDropdown();
     renderOverview();
     renderSheltersView();
     renderTeamsView();
     renderDispatchesView();
+  });
+  searchInput?.addEventListener('focus', () => {
+    if (state.globalSearch.trim()) {
+      renderSearchDropdown();
+    }
+  });
+  document.getElementById('search-results-dropdown')?.addEventListener('click', (e) => {
+    const item = (e.target as HTMLElement).closest<HTMLElement>('[data-search-view]');
+    if (!item) return;
+    const view = item.dataset.searchView as ViewName | undefined;
+    if (view) {
+      switchView(view);
+      closeSearchDropdown();
+    }
   });
   document.getElementById('filter-shelters-status')?.addEventListener('change', (e) => {
     state.sheltersStatus = (e.currentTarget as HTMLSelectElement).value;

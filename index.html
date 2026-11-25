@@ -133,10 +133,11 @@
         </button>
 
         <div class="relative flex-1">
-          <input type="search" id="global-search" aria-label="Cari posko, tim, atau misi" placeholder="Cari sesuatu..." class="w-full h-10 pl-4 pr-10 bg-white border border-zinc-200/80 rounded-xl text-xs text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 transition-all shadow-xs">
+          <input type="search" id="global-search" aria-label="Cari posko, tim, atau misi" placeholder="Cari sesuatu..." autocomplete="off" class="w-full h-10 pl-4 pr-10 bg-white border border-zinc-200/80 rounded-xl text-xs text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 transition-all shadow-xs">
           <svg class="w-4 h-4 text-zinc-400 absolute right-3.5 top-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
+          <div id="search-results-dropdown" role="listbox" aria-label="Hasil Pencarian" class="hidden absolute left-0 right-0 top-12 bg-white rounded-xl border border-zinc-200 shadow-2xl z-50 max-h-96 overflow-y-auto divide-y divide-zinc-100 animate-fade-in"></div>
         </div>
       </div>
 
