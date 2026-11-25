@@ -11,13 +11,16 @@ import {
 } from '../shared/types';
 import { api } from './api/client';
 
+type ViewName = 'overview' | 'shelters' | 'teams' | 'dispatches';
+
 interface AppState {
   shelters: Shelter[];
   teams: ResponseTeam[];
   dispatches: EnrichedDispatch[];
-  sheltersSearch: string;
+  activeView: ViewName;
+  globalSearch: string;
   sheltersStatus: string;
-  dispatchesSearch: string;
+  teamsStatus: string;
   dispatchesStatus: string;
 }
 
@@ -25,19 +28,36 @@ const state: AppState = {
   shelters: [],
   teams: [],
   dispatches: [],
-  sheltersSearch: '',
+  activeView: 'overview',
+  globalSearch: '',
   sheltersStatus: 'ALL',
-  dispatchesSearch: '',
+  teamsStatus: 'ALL',
   dispatchesStatus: 'ALL',
+};
+
+const VIEW_LABELS: Record<ViewName, string> = {
+  overview: 'Pusat Komando',
+  shelters: 'Posko Pengungsian',
+  teams: 'Tim Lapangan',
+  dispatches: 'Daftar Misi',
 };
 
 const SHELTER_STATUS_META: Record<
   ShelterStatus,
-  { label: string; dot: string; text: string }
+  { label: string; badgeClass: string }
 > = {
-  Open: { label: 'Buka', dot: 'bg-emerald-500', text: 'text-emerald-700' },
-  Full: { label: 'Penuh', dot: 'bg-rose-500', text: 'text-rose-600' },
-  Closed: { label: 'Tutup', dot: 'bg-zinc-400', text: 'text-zinc-500' },
+  Open: {
+    label: 'Buka',
+    badgeClass: 'status-badge-open',
+  },
+  Full: {
+    label: 'Penuh',
+    badgeClass: 'status-badge-full',
+  },
+  Closed: {
+    label: 'Tutup',
+    badgeClass: 'status-badge-closed',
+  },
 };
 
 const URGENCY_LABELS: Record<DispatchUrgency, string> = {
@@ -84,19 +104,19 @@ function showToast(
   const toast = document.createElement('div');
   const styleClass =
     type === 'error'
-      ? 'bg-white text-rose-700 border-rose-200'
-      : 'bg-zinc-900 text-white border-zinc-800';
+      ? 'bg-red-700 text-white border-red-800'
+      : 'bg-zinc-950 text-white border-zinc-800';
 
-  toast.className = `pointer-events-auto flex items-center gap-2.5 px-3.5 py-2.5 rounded-md shadow-md border text-xs font-medium animate-slide-in transition-all duration-200 ${styleClass}`;
+  toast.className = `pointer-events-auto flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg shadow-lg border text-xs font-semibold animate-slide-in transition-all duration-200 ${styleClass}`;
 
   const dotClass =
     type === 'success'
       ? 'bg-emerald-400'
       : type === 'error'
-      ? 'bg-rose-500'
+      ? 'bg-white'
       : 'bg-zinc-400';
 
-  toast.innerHTML = `<span class="w-1.5 h-1.5 rounded-full shrink-0 ${dotClass}"></span><span class="flex-1 leading-snug">${escapeHtml(message)}</span>`;
+  toast.innerHTML = `<span class="w-2 h-2 rounded-full shrink-0 ${dotClass}"></span><span class="flex-1 leading-snug">${escapeHtml(message)}</span>`;
   container.appendChild(toast);
 
   setTimeout(() => {
@@ -133,12 +153,57 @@ function resolveConfirm(result: boolean): void {
 }
 
 function closeAllModals(): void {
+  document.getElementById('modal-create-dispatch')?.classList.add('hidden');
   document.getElementById('modal-create-shelter')?.classList.add('hidden');
   document.getElementById('modal-edit-shelter')?.classList.add('hidden');
   document.getElementById('modal-create-team')?.classList.add('hidden');
   document.getElementById('modal-edit-team')?.classList.add('hidden');
   document.getElementById('modal-edit-dispatch')?.classList.add('hidden');
   resolveConfirm(false);
+}
+
+function switchView(view: ViewName): void {
+  state.activeView = view;
+
+  document.querySelectorAll('.view-panel').forEach((el) => el.classList.add('hidden'));
+  document.getElementById(`view-${view}`)?.classList.remove('hidden');
+
+  document.querySelectorAll('.nav-item').forEach((btn) => {
+    const isActive = (btn as HTMLElement).dataset.view === view;
+    btn.classList.toggle('bg-red-600', isActive);
+    btn.classList.toggle('text-white', isActive);
+    btn.classList.toggle('shadow-xs', isActive);
+    btn.classList.toggle('font-semibold', isActive);
+    btn.classList.toggle('bg-red-50', false);
+    btn.classList.toggle('text-red-600', false);
+    btn.classList.toggle('text-zinc-600', !isActive);
+    btn.classList.toggle('hover:text-zinc-950', !isActive);
+    btn.classList.toggle('hover:bg-zinc-200/70', !isActive);
+    btn.classList.toggle('font-medium', !isActive);
+    btn.setAttribute('aria-selected', String(isActive));
+
+    const countBadge = btn.querySelector('span[id^="nav-count-"]');
+    if (countBadge) {
+      countBadge.classList.toggle('text-white/90', isActive);
+      countBadge.classList.toggle('text-zinc-400', !isActive);
+    }
+  });
+
+  document.querySelectorAll('.nav-item-mobile').forEach((btn) => {
+    const isActive = (btn as HTMLElement).dataset.view === view;
+    btn.classList.toggle('bg-red-600', isActive);
+    btn.classList.toggle('text-white', isActive);
+    btn.classList.toggle('shadow-xs', isActive);
+    btn.classList.toggle('font-semibold', isActive);
+    btn.classList.toggle('bg-red-50', false);
+    btn.classList.toggle('text-red-600', false);
+    btn.classList.toggle('text-zinc-600', !isActive);
+    btn.classList.toggle('font-medium', !isActive);
+    btn.setAttribute('aria-selected', String(isActive));
+  });
+
+  const breadcrumb = document.getElementById('header-breadcrumb');
+  if (breadcrumb) breadcrumb.textContent = VIEW_LABELS[view];
 }
 
 function renderTelemetry(): void {
@@ -156,18 +221,180 @@ function renderTelemetry(): void {
   };
 
   setText('telemetry-occupancy', `${totalOcc} / ${totalCap}`);
-  setText('telemetry-occupancy-pct', `${pct}% terpakai`);
+  setText('telemetry-occupancy-pct', `${pct}%`);
   setText('telemetry-available-beds', String(available));
   setText('telemetry-active-dispatches', String(activeMissions));
   setText('telemetry-standby-teams', `${standbyUnits} / ${state.teams.length}`);
+
+  const occBar = document.getElementById('telemetry-occupancy-bar');
+  if (occBar) {
+    const numPct = totalCap > 0 ? Math.min(100, Math.round((totalOcc / totalCap) * 100)) : 0;
+    occBar.style.width = `${numPct}%`;
+    occBar.className = `progress-bar-fill h-full rounded-full ${
+      numPct >= 90 ? 'bg-red-700' : numPct >= 75 ? 'bg-amber-600' : 'bg-red-600'
+    }`;
+  }
+
+  setText('nav-count-shelters', String(state.shelters.length));
+  setText('nav-count-teams', String(state.teams.length));
+  setText('nav-count-dispatches', String(state.dispatches.length));
 }
 
-function renderSheltersGrid(): void {
+function renderShelterCard(s: Shelter): string {
+  const meta = SHELTER_STATUS_META[s.status];
+  const pct = Math.min(100, Math.round((s.current_occupancy / s.max_capacity) * 100));
+  const remaining = Math.max(0, s.max_capacity - s.current_occupancy);
+  const barColor =
+    s.status === 'Closed'
+      ? 'bg-zinc-400'
+      : pct >= 100
+      ? 'bg-red-700'
+      : pct >= 80
+      ? 'bg-amber-600'
+      : 'bg-red-600';
+
+  return `
+  <article class="card-elevated hover:border-zinc-400 transition-all flex flex-col justify-between overflow-hidden">
+    <div class="p-5">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <span class="font-mono text-xs font-semibold text-zinc-500">${escapeHtml(s.shelter_id)}</span>
+        <span class="${meta.badgeClass}">
+          ${escapeHtml(meta.label)}
+        </span>
+      </div>
+
+      <h3 class="text-sm font-bold text-zinc-950 leading-snug">${escapeHtml(s.name)}</h3>
+      <p class="text-xs text-zinc-500 mt-0.5 mb-4">${escapeHtml(s.location)}</p>
+
+      <div>
+        <div class="flex justify-between items-center text-xs mb-1.5">
+          <span class="text-zinc-600 font-medium">${remaining} tempat kosong</span>
+          <span class="tabular-nums font-bold text-zinc-900">${s.current_occupancy} / ${s.max_capacity}</span>
+        </div>
+        <div class="w-full h-2 bg-zinc-200 rounded-full overflow-hidden">
+          <div class="progress-bar-fill h-full rounded-full ${barColor}" style="width: ${pct}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-5 py-3 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between text-xs">
+      <span class="tabular-nums text-zinc-600 font-semibold">${pct}% terisi</span>
+      <div class="flex items-center gap-3">
+        <button type="button" data-action="edit-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer text-zinc-700 hover:text-zinc-950 font-semibold transition-colors">Edit</button>
+        <button type="button" data-action="delete-shelter" data-id="${escapeHtml(s.shelter_id)}" class="cursor-pointer text-red-600 hover:text-red-700 font-semibold transition-colors">Hapus</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderOverview(): void {
+  const q = state.globalSearch.toLowerCase();
+
+  // Shelters preview
+  const overviewShelters = document.getElementById('overview-shelters-grid');
+  if (overviewShelters) {
+    const matched = state.shelters.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.location.toLowerCase().includes(q) ||
+        s.shelter_id.toLowerCase().includes(q)
+    );
+    overviewShelters.innerHTML = matched.length
+      ? matched.slice(0, 3).map(renderShelterCard).join('')
+      : '<div class="col-span-3 text-center py-8 card-elevated text-xs font-medium text-zinc-500">Tidak ada posko ditemukan.</div>';
+  }
+
+  // Dispatches preview
+  const overviewDispatches = document.getElementById('overview-dispatches-list');
+  if (overviewDispatches) {
+    const matched = state.dispatches.filter(
+      (d) =>
+        d.incident_location.toLowerCase().includes(q) ||
+        d.shelter_name.toLowerCase().includes(q) ||
+        d.team_name.toLowerCase().includes(q)
+    );
+    if (matched.length === 0) {
+      overviewDispatches.innerHTML =
+        '<div class="py-10 text-center text-xs text-zinc-500">Belum ada misi evakuasi.</div>';
+    } else {
+      overviewDispatches.innerHTML = matched
+        .slice(0, 5)
+        .map((d) => {
+          const isCompleted = d.status === 'Completed';
+          const badgeClass = isCompleted ? 'status-badge-completed' : 'status-badge-active';
+          const badgeText = isCompleted ? 'Selesai' : 'Aktif';
+          const urgencyClass =
+            d.urgency === 'Critical'
+              ? 'text-red-600 font-bold'
+              : d.urgency === 'High'
+              ? 'text-orange-600 font-semibold'
+              : 'text-zinc-600 font-medium';
+
+          return `
+          <div class="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-zinc-50 transition-colors">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 text-xs mb-1">
+                <span class="font-mono text-zinc-500 font-semibold">${escapeHtml(d.dispatch_id)}</span>
+                <span class="${urgencyClass}">${escapeHtml(URGENCY_LABELS[d.urgency])}</span>
+                <span class="text-zinc-300">·</span>
+                <span class="${badgeClass}">${badgeText}</span>
+              </div>
+              <p class="text-xs font-semibold text-zinc-950 truncate">${escapeHtml(d.incident_location)}</p>
+              <p class="text-xs text-zinc-500 truncate mt-0.5">${escapeHtml(d.shelter_name)} (+${d.evacuee_count}) · ${escapeHtml(d.team_name)}</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              ${
+                !isCompleted
+                  ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">Selesai</button>`
+                  : ''
+              }
+            </div>
+          </div>`;
+        })
+        .join('');
+    }
+  }
+
+  // Teams preview
+  const overviewTeams = document.getElementById('overview-teams-list');
+  if (overviewTeams) {
+    const matched = state.teams.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.specialty.toLowerCase().includes(q)
+    );
+    if (matched.length === 0) {
+      overviewTeams.innerHTML =
+        '<div class="py-10 text-center text-xs text-zinc-500">Belum ada tim terdaftar.</div>';
+    } else {
+      overviewTeams.innerHTML = matched
+        .map((t) => {
+          const isStandby = t.status === 'Standby';
+          const badgeClass = isStandby ? 'status-badge-standby' : 'status-badge-deployed';
+          const badgeText = isStandby ? 'Siaga' : 'Bertugas';
+
+          return `
+          <div class="px-5 py-3 flex items-center justify-between gap-3 hover:bg-zinc-50 transition-colors">
+            <div class="min-w-0">
+              <p class="text-xs font-semibold text-zinc-950 truncate">${escapeHtml(t.name)}</p>
+              <p class="text-xs text-zinc-500 tabular-nums mt-0.5">${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel</p>
+            </div>
+            <span class="${badgeClass}">
+              ${badgeText}
+            </span>
+          </div>`;
+        })
+        .join('');
+    }
+  }
+}
+
+function renderSheltersView(): void {
   const grid = document.getElementById('shelters-grid');
   const empty = document.getElementById('shelters-empty-state');
   if (!grid || !empty) return;
 
-  const q = state.sheltersSearch.toLowerCase();
+  const q = state.globalSearch.toLowerCase();
   const filtered = state.shelters.filter((s) => {
     const matchSearch =
       s.name.toLowerCase().includes(q) ||
@@ -184,137 +411,63 @@ function renderSheltersGrid(): void {
   }
 
   empty.classList.add('hidden');
-  grid.innerHTML = filtered
-    .map((s) => {
-      const meta = SHELTER_STATUS_META[s.status];
-      const pct = Math.min(100, Math.round((s.current_occupancy / s.max_capacity) * 100));
-      const remaining = Math.max(0, s.max_capacity - s.current_occupancy);
-      const barColor =
-        s.status === 'Closed'
-          ? 'bg-zinc-400'
-          : pct >= 100
-          ? 'bg-rose-500'
-          : pct >= 80
-          ? 'bg-amber-500'
-          : 'bg-zinc-900';
-
-      return `
-      <article class="bg-white rounded-lg border border-zinc-200 hover:border-zinc-300 transition-colors flex flex-col justify-between">
-        <div class="p-4">
-          <div class="flex items-center justify-between gap-2 mb-2">
-            <span class="font-mono text-[11px] text-zinc-400">${escapeHtml(s.shelter_id)}</span>
-            <span class="inline-flex items-center gap-1.5 text-[11px] font-medium ${meta.text}">
-              <span class="w-1.5 h-1.5 rounded-full ${meta.dot}"></span>
-              ${escapeHtml(meta.label)}
-            </span>
-          </div>
-
-          <h3 class="text-sm font-semibold text-zinc-900 leading-snug">${escapeHtml(s.name)}</h3>
-          <p class="text-xs text-zinc-500 mt-0.5 mb-4">${escapeHtml(s.location)}</p>
-
-          <div>
-            <div class="flex justify-between items-center text-[11px] mb-1.5">
-              <span class="text-zinc-500">${remaining} tempat kosong</span>
-              <span class="tabular-nums font-medium text-zinc-800">${s.current_occupancy} / ${s.max_capacity}</span>
-            </div>
-            <div class="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-              <div class="progress-bar-fill h-full rounded-full ${barColor}" style="width: ${pct}%"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="px-4 py-2.5 bg-zinc-50/70 border-t border-zinc-100 flex items-center justify-between text-[11px]">
-          <span class="tabular-nums text-zinc-400">${pct}% terisi</span>
-          <div class="flex items-center gap-3">
-            <button type="button" data-action="edit-shelter" data-id="${escapeHtml(s.shelter_id)}" class="text-zinc-600 hover:text-zinc-900 font-medium transition-colors">Edit</button>
-            <button type="button" data-action="delete-shelter" data-id="${escapeHtml(s.shelter_id)}" class="text-rose-600 hover:text-rose-700 font-medium transition-colors">Hapus</button>
-          </div>
-        </div>
-      </article>`;
-    })
-    .join('');
+  grid.innerHTML = filtered.map(renderShelterCard).join('');
 }
 
-function renderDispatchFormDropdowns(): void {
-  const shelterSelect = document.getElementById('dispatch-shelter') as HTMLSelectElement | null;
-  if (shelterSelect) {
-    const prev = shelterSelect.value;
-    shelterSelect.innerHTML = '<option value="" disabled selected>Pilih posko...</option>';
-    for (const s of state.shelters) {
-      const free = Math.max(0, s.max_capacity - s.current_occupancy);
-      const opt = document.createElement('option');
-      opt.value = s.shelter_id;
-      opt.disabled = s.status !== 'Open' || free <= 0;
-      opt.textContent = `${s.name} (${free} kosong · ${SHELTER_STATUS_META[s.status].label})`;
-      shelterSelect.appendChild(opt);
-    }
-    if (prev && state.shelters.some((s) => s.shelter_id === prev && s.status === 'Open')) {
-      shelterSelect.value = prev;
-    }
-  }
-
-  const teamSelect = document.getElementById('dispatch-team') as HTMLSelectElement | null;
-  if (teamSelect) {
-    const prev = teamSelect.value;
-    teamSelect.innerHTML = '<option value="" disabled selected>Pilih tim siaga...</option>';
-    for (const t of state.teams) {
-      const opt = document.createElement('option');
-      opt.value = t.team_id;
-      opt.disabled = t.status !== 'Standby';
-      const statusText = t.status === 'Standby' ? 'Siaga' : 'Bertugas';
-      opt.textContent = `${t.name} (${SPECIALTY_LABELS[t.specialty]} · ${statusText})`;
-      teamSelect.appendChild(opt);
-    }
-    if (prev && state.teams.some((t) => t.team_id === prev && t.status === 'Standby')) {
-      teamSelect.value = prev;
-    }
-  }
-}
-
-function renderTeamsList(): void {
-  const list = document.getElementById('teams-list');
+function renderTeamsView(): void {
+  const tbody = document.getElementById('teams-table-body');
   const empty = document.getElementById('teams-empty-state');
-  if (!list || !empty) return;
+  if (!tbody || !empty) return;
 
-  if (state.teams.length === 0) {
-    list.innerHTML = '';
+  const q = state.globalSearch.toLowerCase();
+  const filtered = state.teams.filter((t) => {
+    const matchSearch =
+      t.name.toLowerCase().includes(q) ||
+      t.specialty.toLowerCase().includes(q) ||
+      t.team_id.toLowerCase().includes(q);
+    const matchStatus = state.teamsStatus === 'ALL' || t.status === state.teamsStatus;
+    return matchSearch && matchStatus;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
     empty.classList.remove('hidden');
     return;
   }
 
   empty.classList.add('hidden');
-  list.innerHTML = state.teams
+  tbody.innerHTML = filtered
     .map((t) => {
       const isStandby = t.status === 'Standby';
+      const badgeClass = isStandby ? 'status-badge-standby' : 'status-badge-deployed';
+      const badgeText = isStandby ? 'Siaga' : 'Bertugas';
 
       return `
-      <div class="px-4 py-3 flex items-center justify-between gap-3 hover:bg-zinc-50/70 transition-colors">
-        <div class="min-w-0 flex-1">
-          <div class="text-xs font-medium text-zinc-900 truncate">${escapeHtml(t.name)}</div>
-          <div class="text-[11px] text-zinc-500 mt-0.5 tabular-nums">
-            <span class="font-mono text-zinc-400">${escapeHtml(t.team_id)}</span> · ${escapeHtml(SPECIALTY_LABELS[t.specialty])} · ${t.member_count} personel
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3 shrink-0">
-          <span class="inline-flex items-center gap-1.5 text-[11px] font-medium ${isStandby ? 'text-emerald-700' : 'text-amber-700'}">
-            <span class="w-1.5 h-1.5 rounded-full ${isStandby ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
-            ${isStandby ? 'Siaga' : 'Bertugas'}
+      <tr class="hover:bg-zinc-50 transition-colors">
+        <td class="px-5 py-3 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(t.team_id)}</td>
+        <td class="px-5 py-3 font-semibold text-zinc-950">${escapeHtml(t.name)}</td>
+        <td class="px-5 py-3 text-zinc-700 font-medium">${escapeHtml(SPECIALTY_LABELS[t.specialty])}</td>
+        <td class="px-5 py-3 tabular-nums text-zinc-700">${t.member_count} personel</td>
+        <td class="px-5 py-3">
+          <span class="${badgeClass}">
+            ${badgeText}
           </span>
-          <button type="button" data-action="edit-team" data-id="${escapeHtml(t.team_id)}" class="text-[11px] font-medium text-zinc-600 hover:text-zinc-900">Edit</button>
-          <button type="button" data-action="delete-team" data-id="${escapeHtml(t.team_id)}" class="text-[11px] font-medium text-rose-600 hover:text-rose-700">Hapus</button>
-        </div>
-      </div>`;
+        </td>
+        <td class="px-5 py-3 text-right space-x-3 whitespace-nowrap">
+          <button type="button" data-action="edit-team" data-id="${escapeHtml(t.team_id)}" class="text-xs font-semibold text-zinc-700 hover:text-zinc-950">Edit</button>
+          <button type="button" data-action="delete-team" data-id="${escapeHtml(t.team_id)}" class="text-xs font-semibold text-red-600 hover:text-red-700">Hapus</button>
+        </td>
+      </tr>`;
     })
     .join('');
 }
 
-function renderDispatchesFeed(): void {
-  const feed = document.getElementById('dispatches-feed');
+function renderDispatchesView(): void {
+  const tbody = document.getElementById('dispatches-table-body');
   const empty = document.getElementById('dispatches-empty-state');
-  if (!feed || !empty) return;
+  if (!tbody || !empty) return;
 
-  const q = state.dispatchesSearch.toLowerCase();
+  const q = state.globalSearch.toLowerCase();
   const filtered = state.dispatches.filter((d) => {
     const matchSearch =
       d.incident_location.toLowerCase().includes(q) ||
@@ -326,76 +479,97 @@ function renderDispatchesFeed(): void {
   });
 
   if (filtered.length === 0) {
-    feed.innerHTML = '';
-    feed.classList.add('hidden');
+    tbody.innerHTML = '';
     empty.classList.remove('hidden');
     return;
   }
 
   empty.classList.add('hidden');
-  feed.classList.remove('hidden');
-  feed.innerHTML = filtered
+  tbody.innerHTML = filtered
     .map((d) => {
       const isCompleted = d.status === 'Completed';
+      const badgeClass = isCompleted ? 'status-badge-completed' : 'status-badge-active';
+      const badgeText = isCompleted ? 'Selesai' : 'Aktif';
       const specialtyLabel =
         d.team_specialty === 'Unknown' ? 'Umum' : SPECIALTY_LABELS[d.team_specialty];
-      const urgencyColor =
+      const urgencyClass =
         d.urgency === 'Critical'
-          ? 'text-rose-600'
+          ? 'text-red-600 font-bold'
           : d.urgency === 'High'
-          ? 'text-amber-700'
-          : 'text-zinc-600';
+          ? 'text-orange-600 font-semibold'
+          : 'text-zinc-700 font-medium';
 
       return `
-      <article class="p-4 hover:bg-zinc-50/50 transition-colors ${isCompleted ? 'opacity-70' : ''}">
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2 text-[11px] mb-1">
-              <span class="font-mono text-zinc-400">${escapeHtml(d.dispatch_id)}</span>
-              <span class="font-medium ${urgencyColor}">${escapeHtml(URGENCY_LABELS[d.urgency])}</span>
-              <span class="text-zinc-300">·</span>
-              <span class="inline-flex items-center gap-1.5 font-medium ${isCompleted ? 'text-emerald-700' : 'text-zinc-800'}">
-                <span class="w-1.5 h-1.5 rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
-                ${isCompleted ? 'Selesai' : 'Aktif'}
-              </span>
-            </div>
-
-            <h3 class="text-sm font-medium text-zinc-900">${escapeHtml(d.incident_location)}</h3>
-            <p class="text-xs text-zinc-600 mt-1">
-              Tujuan <span class="font-medium text-zinc-900">${escapeHtml(d.shelter_name)}</span>
-              <span class="tabular-nums text-zinc-500">(+${d.evacuee_count} pengungsi)</span>
-            </p>
-            <p class="text-[11px] text-zinc-500 mt-0.5">
-              Unit: ${escapeHtml(d.team_name)} (${escapeHtml(specialtyLabel)})
-              ${d.completed_at ? ` · Selesai ${escapeHtml(formatTimestamp(d.completed_at))}` : ''}
-            </p>
-          </div>
-
-          <span class="text-[11px] tabular-nums text-zinc-400 shrink-0">${escapeHtml(formatTimestamp(d.created_at))}</span>
-        </div>
-
-        <div class="mt-3 flex items-center justify-end gap-2">
+      <tr class="hover:bg-zinc-50 transition-colors ${isCompleted ? 'opacity-80' : ''}">
+        <td class="px-5 py-3 font-mono font-medium tabular-nums text-zinc-500">${escapeHtml(d.dispatch_id)}</td>
+        <td class="px-5 py-3">
+          <div class="font-semibold text-zinc-950">${escapeHtml(d.incident_location)}</div>
+          <div class="text-[11px] text-zinc-500 tabular-nums">${escapeHtml(formatTimestamp(d.created_at))}</div>
+        </td>
+        <td class="px-5 py-3">
+          <div class="font-semibold text-zinc-900">${escapeHtml(d.shelter_name)}</div>
+          <div class="text-[11px] text-zinc-500 tabular-nums">+${d.evacuee_count} pengungsi</div>
+        </td>
+        <td class="px-5 py-3">
+          <div class="text-zinc-900 font-medium">${escapeHtml(d.team_name)}</div>
+          <div class="text-[11px] ${urgencyClass}">${escapeHtml(specialtyLabel)} · Urgensi ${escapeHtml(URGENCY_LABELS[d.urgency])}</div>
+        </td>
+        <td class="px-5 py-3">
+          <span class="${badgeClass}">
+            ${badgeText}
+          </span>
+        </td>
+        <td class="px-5 py-3 text-right space-x-2 whitespace-nowrap">
           ${
             !isCompleted
-              ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-white text-[11px] font-medium rounded-md transition-colors">Tandai Selesai</button>`
+              ? `<button type="button" data-action="complete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="cursor-pointer px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">Selesai</button>`
               : ''
           }
-          <button type="button" data-action="edit-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2 py-1 text-[11px] font-medium text-zinc-600 hover:text-zinc-900">Edit</button>
-          <button type="button" data-action="delete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2 py-1 text-[11px] font-medium text-rose-600 hover:text-rose-700">
+          <button type="button" data-action="edit-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2 py-1 text-xs font-semibold text-zinc-700 hover:text-zinc-950">Edit</button>
+          <button type="button" data-action="delete-dispatch" data-id="${escapeHtml(d.dispatch_id)}" class="px-2 py-1 text-xs font-semibold text-red-600 hover:text-red-700">
             ${isCompleted ? 'Hapus' : 'Batalkan'}
           </button>
-        </div>
-      </article>`;
+        </td>
+      </tr>`;
     })
     .join('');
 }
 
+function renderDispatchModalDropdowns(): void {
+  const shelterSelect = document.getElementById('dispatch-shelter') as HTMLSelectElement | null;
+  if (shelterSelect) {
+    shelterSelect.innerHTML = '<option value="" disabled selected>Pilih posko...</option>';
+    for (const s of state.shelters) {
+      const free = Math.max(0, s.max_capacity - s.current_occupancy);
+      const opt = document.createElement('option');
+      opt.value = s.shelter_id;
+      opt.disabled = s.status !== 'Open' || free <= 0;
+      opt.textContent = `${s.name} (${free} kosong · ${SHELTER_STATUS_META[s.status].label})`;
+      shelterSelect.appendChild(opt);
+    }
+  }
+
+  const teamSelect = document.getElementById('dispatch-team') as HTMLSelectElement | null;
+  if (teamSelect) {
+    teamSelect.innerHTML = '<option value="" disabled selected>Pilih tim siaga...</option>';
+    for (const t of state.teams) {
+      const opt = document.createElement('option');
+      opt.value = t.team_id;
+      opt.disabled = t.status !== 'Standby';
+      const statusText = t.status === 'Standby' ? 'Siaga' : 'Bertugas';
+      opt.textContent = `${t.name} (${SPECIALTY_LABELS[t.specialty]} · ${statusText})`;
+      teamSelect.appendChild(opt);
+    }
+  }
+}
+
 function renderAll(): void {
   renderTelemetry();
-  renderSheltersGrid();
-  renderDispatchFormDropdowns();
-  renderTeamsList();
-  renderDispatchesFeed();
+  renderOverview();
+  renderSheltersView();
+  renderTeamsView();
+  renderDispatchesView();
+  renderDispatchModalDropdowns();
 }
 
 async function refreshAllData(): Promise<void> {
@@ -459,22 +633,69 @@ function openEditDispatchModal(dispatchId: string): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-open-create-shelter')?.addEventListener('click', () => {
-    document.getElementById('modal-create-shelter')?.classList.remove('hidden');
+  // Navigation
+  document.querySelectorAll('[data-view]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const view = (e.currentTarget as HTMLElement).dataset.view as ViewName | undefined;
+      if (view) switchView(view);
+    });
   });
-  document.getElementById('btn-open-create-team')?.addEventListener('click', () => {
-    document.getElementById('modal-create-team')?.classList.remove('hidden');
+  document.querySelectorAll('[data-jump-view]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const view = (e.currentTarget as HTMLElement).dataset.jumpView as ViewName | undefined;
+      if (view) switchView(view);
+    });
   });
+
+  // Modal Triggers
+  document.getElementById('btn-open-create-dispatch')?.addEventListener('click', () => {
+    document.getElementById('modal-create-dispatch')?.classList.remove('hidden');
+    document.getElementById('dispatch-shelter')?.focus();
+  });
+  document.querySelectorAll('[data-open-dispatch-modal]').forEach((el) => {
+    el.addEventListener('click', () => {
+      document.getElementById('modal-create-dispatch')?.classList.remove('hidden');
+      document.getElementById('dispatch-shelter')?.focus();
+    });
+  });
+  document.querySelectorAll('[data-open-shelter-modal]').forEach((el) => {
+    el.addEventListener('click', () => {
+      document.getElementById('modal-create-shelter')?.classList.remove('hidden');
+      document.getElementById('shelter-name')?.focus();
+    });
+  });
+  document.querySelectorAll('[data-open-team-modal]').forEach((el) => {
+    el.addEventListener('click', () => {
+      document.getElementById('modal-create-team')?.classList.remove('hidden');
+      document.getElementById('team-name')?.focus();
+    });
+  });
+
   document.querySelectorAll('[data-close-modal]').forEach((el) => {
     el.addEventListener('click', closeAllModals);
   });
+
+  // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAllModals();
+    if (e.key === 'Escape') {
+      closeAllModals();
+      return;
+    }
+    if (
+      e.key === '/' &&
+      document.activeElement?.tagName !== 'INPUT' &&
+      document.activeElement?.tagName !== 'SELECT' &&
+      document.activeElement?.tagName !== 'TEXTAREA'
+    ) {
+      e.preventDefault();
+      document.getElementById('global-search')?.focus();
+    }
   });
 
   document.getElementById('btn-confirm-cancel')?.addEventListener('click', () => resolveConfirm(false));
   document.getElementById('btn-confirm-ok')?.addEventListener('click', () => resolveConfirm(true));
 
+  // Delegated actions
   document.addEventListener('click', async (e) => {
     const target = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
     if (!target) return;
@@ -489,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (action === 'delete-shelter') {
         const ok = await askConfirm(
           'Hapus Posko',
-          'Hapus posko ini? Posko yang masih memiliki misi evakuasi aktif tidak dapat dihapus.'
+          'Hapus posko ini? Posko yang masih memiliki misi aktif tidak dapat dihapus.'
         );
         if (!ok) return;
         await api.deleteShelter(id);
@@ -527,6 +748,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       showToast(getErrorMessage(err, 'Operasi gagal dijalankan.'), 'error');
+    }
+  });
+
+  // Forms
+  document.getElementById('form-create-dispatch')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    try {
+      const created = await api.createDispatch({
+        shelter_id: (document.getElementById('dispatch-shelter') as HTMLSelectElement).value,
+        team_id: (document.getElementById('dispatch-team') as HTMLSelectElement).value,
+        incident_location: (document.getElementById('dispatch-location') as HTMLInputElement).value.trim(),
+        evacuee_count: Number.parseInt(
+          (document.getElementById('dispatch-evacuees') as HTMLInputElement).value,
+          10
+        ),
+        urgency: (document.getElementById('dispatch-urgency') as HTMLSelectElement).value as DispatchUrgency,
+      });
+      showToast(
+        `${created.team_name} dikerahkan (+${created.evacuee_count} tempat dipesan).`,
+        'success'
+      );
+      form.reset();
+      closeAllModals();
+      await refreshAllData();
+    } catch (err) {
+      showToast(getErrorMessage(err, 'Gagal menerbitkan misi.'), 'error');
     }
   });
 
@@ -614,31 +862,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('form-create-dispatch')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
-    try {
-      const created = await api.createDispatch({
-        shelter_id: (document.getElementById('dispatch-shelter') as HTMLSelectElement).value,
-        team_id: (document.getElementById('dispatch-team') as HTMLSelectElement).value,
-        incident_location: (document.getElementById('dispatch-location') as HTMLInputElement).value.trim(),
-        evacuee_count: Number.parseInt(
-          (document.getElementById('dispatch-evacuees') as HTMLInputElement).value,
-          10
-        ),
-        urgency: (document.getElementById('dispatch-urgency') as HTMLSelectElement).value as DispatchUrgency,
-      });
-      showToast(
-        `${created.team_name} dikerahkan (+${created.evacuee_count} tempat dipesan).`,
-        'success'
-      );
-      form.reset();
-      await refreshAllData();
-    } catch (err) {
-      showToast(getErrorMessage(err, 'Gagal menerbitkan misi.'), 'error');
-    }
-  });
-
   document.getElementById('form-edit-dispatch')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
@@ -656,21 +879,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('filter-shelters-search')?.addEventListener('input', (e) => {
-    state.sheltersSearch = (e.currentTarget as HTMLInputElement).value;
-    renderSheltersGrid();
+  // Search & Filters
+  document.getElementById('global-search')?.addEventListener('input', (e) => {
+    state.globalSearch = (e.currentTarget as HTMLInputElement).value;
+    renderOverview();
+    renderSheltersView();
+    renderTeamsView();
+    renderDispatchesView();
   });
   document.getElementById('filter-shelters-status')?.addEventListener('change', (e) => {
     state.sheltersStatus = (e.currentTarget as HTMLSelectElement).value;
-    renderSheltersGrid();
+    renderSheltersView();
   });
-  document.getElementById('filter-dispatches-search')?.addEventListener('input', (e) => {
-    state.dispatchesSearch = (e.currentTarget as HTMLInputElement).value;
-    renderDispatchesFeed();
+  document.getElementById('filter-teams-status')?.addEventListener('change', (e) => {
+    state.teamsStatus = (e.currentTarget as HTMLSelectElement).value;
+    renderTeamsView();
   });
   document.getElementById('filter-dispatches-status')?.addEventListener('change', (e) => {
     state.dispatchesStatus = (e.currentTarget as HTMLSelectElement).value;
-    renderDispatchesFeed();
+    renderDispatchesView();
   });
 
   refreshAllData();
